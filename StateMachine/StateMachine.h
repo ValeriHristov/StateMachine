@@ -3,11 +3,12 @@
 #include <unordered_map>
 #include "State.h"
 #include "Transition.h"
+#include "String.h"
 
 class StateMachine
 {
 private:
-	char* regex;
+	String regex;
 	State* start;
 	State* currentState;
 	std::vector<State*> states;
@@ -22,11 +23,11 @@ public:
 	StateMachine(const StateMachine&);
 	~StateMachine();
 	StateMachine& operator=(const StateMachine&);
-	bool Recognize(char* word);
+	bool Recognize(String word);
 	StateMachine Union(const StateMachine& other)const;
 	StateMachine Concatenate(const StateMachine& other) const;
 	StateMachine Iteration() const;
-	char* GetRegex() const;
+	String GetRegex() const;
 	//TODO copyctor, =,==, destructor
 	//TODO remove unreacheable states
 	//TODO determination

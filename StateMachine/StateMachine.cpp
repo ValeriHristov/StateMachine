@@ -9,10 +9,7 @@ int StateMachine::IndexOfState(const State* state) const
 
 void StateMachine::CopyStateMachine(StateMachine& dest, const StateMachine& source)
 {
-	char* temp = source.GetRegex();
-	dest.regex = new char[strlen(temp) + 1];
-	strcpy(dest.regex, temp);
-	delete[] temp;
+	dest.regex = source.regex;
 
 	int size = source.states.size();
 	for (int i = 0; i < size; i++)
@@ -36,7 +33,6 @@ void StateMachine::CopyStateMachine(StateMachine& dest, const StateMachine& sour
 
 void StateMachine::DeleteStateMachine(StateMachine& machine)
 {
-	delete[] machine.regex;
 	for (int i = 0; i < machine.states.size(); i++)
 	{
 		delete machine.states[i];
@@ -55,7 +51,7 @@ void StateMachine::DeleteStateMachine(StateMachine& machine)
 
 StateMachine::StateMachine()
 {
-	this->regex = new char[1];
+	this->regex = String();
 	State* startState = new State(true);
 	this->start = startState;
 	this->currentState = this->start;
@@ -95,9 +91,9 @@ StateMachine& StateMachine::operator=(const StateMachine& other)
 	return *this;
 }
 
-bool StateMachine::Recognize(char* word)
+bool StateMachine::Recognize(String word)
 { 
-	if (strlen(word) == 0)
+	if (word.GetLength()==0)
 	{
 		return (*this->currentState).IsFinal();
 	}
@@ -107,7 +103,7 @@ bool StateMachine::Recognize(char* word)
 	for (int i = 0; i < transitions.size(); i++)
 	{
 		this->currentState = this->states[transitions[i].Transist()];
-		recognized = recognized || this->Recognize(word + 1);
+		recognized = recognized || this->Recognize(word.Substring(1));
 		if (recognized)
 		{
 			this->currentState = this->start;
@@ -127,9 +123,9 @@ void StateMachine::AddState(State* state)
 	this->states.push_back(state);
 }
 
-char* StateMachine::GetRegex() const
+String StateMachine::GetRegex() const
 {
-	return new char(*this->regex);
+	return this->regex;
 }
 
 StateMachine StateMachine::Union(const StateMachine& other) const

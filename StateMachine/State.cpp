@@ -43,7 +43,7 @@ bool State::IsFinal() const
 	return this->isFinal;
 }
 
-std::vector<Transition> State::Transist(char* word) const
+std::vector<Transition> State::Transist(String word) const
 {
 	if (this->transitions.count(word[0]))
 	{

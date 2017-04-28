@@ -4,12 +4,15 @@ int main()
 {
 
 	StateMachine b;
-	
+	StateMachine ac;
+	if (true)
+	{
 		StateMachine a('a');
 		StateMachine c('c');
-		StateMachine ac= a.Union(c);
-		StateMachine acIteration = ac.Iteration();
-	    std::cout << acIteration.Recognize("acaaac");
+		 ac = a.Union(c).Iteration();
+	}
+
+	std::cout << ac.Recognize("acaaacb");
 
 
 	/*while (true)

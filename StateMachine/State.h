@@ -2,7 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include "Transition.h"
-
+#include "String.h"
 class Transition;
 class State
 {
@@ -15,7 +15,7 @@ public:
 	bool operator==(const State&) const;
 	void AddTransition(const Transition&);
 	bool IsFinal() const;
-	std::vector<Transition> Transist(char* word) const;
+	std::vector<Transition> Transist(String word) const;
 	std::vector<Transition> GetAllTransitions() const;
 	void AddFunctionality(const State&, bool copyIsFinal);
 
