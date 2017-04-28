@@ -227,3 +227,4 @@ StateMachine StateMachine::Concatenate(const StateMachine& other) const
 	}
 	return newMachine;
 }
+
