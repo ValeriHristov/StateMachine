@@ -25,6 +25,7 @@ public:
 	bool Recognize(char* word);
 	StateMachine Union(const StateMachine& other)const;
 	StateMachine Concatenate(const StateMachine& other) const;
+	StateMachine Iteration() const;
 	char* GetRegex() const;
 	//TODO copyctor, =,==, destructor
 	//TODO remove unreacheable states
