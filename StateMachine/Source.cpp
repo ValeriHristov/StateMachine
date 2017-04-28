@@ -9,7 +9,7 @@ int main()
 		StateMachine c('c');
 		StateMachine ac= a.Union(c);
 		StateMachine acIteration = ac.Iteration();
-	    std::cout << acIteration.Recognize("");
+	    std::cout << acIteration.Recognize("acaaac");
 
 
 	/*while (true)

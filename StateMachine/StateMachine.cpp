@@ -96,7 +96,7 @@ StateMachine& StateMachine::operator=(const StateMachine& other)
 }
 
 bool StateMachine::Recognize(char* word)
-{
+{ 
 	if (strlen(word) == 0)
 	{
 		return (*this->currentState).IsFinal();
