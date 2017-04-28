@@ -7,10 +7,9 @@ int main()
 	
 		StateMachine a('a');
 		StateMachine c('c');
-		StateMachine ac= a.Concatenate(c);
-		StateMachine acac = ac.Concatenate(ac);
-		acac = acac.Concatenate(acac).Union(a).Concatenate(c);
-	    std::cout << acac.Recognize("acacacacc");
+		StateMachine ac= a.Union(c);
+		StateMachine acIteration = ac.Iteration();
+	    std::cout << acIteration.Recognize("");
 
 
 	/*while (true)

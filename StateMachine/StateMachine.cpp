@@ -222,9 +222,28 @@ StateMachine StateMachine::Concatenate(const StateMachine& other) const
 	{
 		for (int i = 0; i < this->finalStates.size(); i++)
 		{
-			(*(newMachine.finalStates[i])).AddFunctionality(State(false), true);
+			newMachine.finalStates[i]->AddFunctionality(State(false), true);
 		}
 	}
 	return newMachine;
 }
 
+StateMachine StateMachine::Iteration() const
+{
+	StateMachine newMachine(*this);
+	State* newState = new State(true);
+	newMachine.AddState(newState);
+
+	int endStatesCount = newMachine.finalStates.size();
+	std::vector<Transition> t = this->start->GetAllTransitions();
+	for (int i = 0; i < endStatesCount; i++)
+	{
+		for (int j = 0; j < t.size(); j++)
+		{
+			newMachine.finalStates[i]->AddTransition(t[j]);
+		}
+	}
+	newMachine.start = newState;
+	newMachine.currentState = newMachine.start;
+	return newMachine;
+}

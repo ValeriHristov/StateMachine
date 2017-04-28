@@ -32,5 +32,4 @@ public:
 	//TODO determination
 	//TODO minimization
 	//TODO use string instead of char*
-	//TODO epsilon transitions
 };
