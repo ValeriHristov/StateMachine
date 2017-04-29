@@ -15,19 +15,14 @@ State::State(const State* state)
 	this->transitions = state->transitions;
 }
 
-bool State::operator==(const State& state)const
-{
-	return false;
-}
-
-void State::AddFunctionality(const State& other, bool copyIsEnd)
+void State::AddFunctionality(const State& other, bool copyIsFinal)
 {
 	std::vector<Transition> temp = other.GetAllTransitions();
 	for (int i = 0; i < temp.capacity(); i++)
 	{
-		(*this).AddTransition(temp[i]);
+		this->AddTransition(temp[i]);
 	}
-	if (copyIsEnd)
+	if (copyIsFinal)
 	{
 		this->isFinal = other.IsFinal();
 	}

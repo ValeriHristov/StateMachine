@@ -23,7 +23,7 @@ void StateMachine::CopyStateMachine(StateMachine& dest, const StateMachine& sour
 		{
 			dest.currentState = t;
 		}
-		if ((*t).IsFinal())
+		if (t->IsFinal())
 		{
 			dest.finalStates.push_back(t);
 		}
@@ -79,7 +79,7 @@ StateMachine::StateMachine(char letter)
 	AddState(startState);
 	AddState(endState);
 
-	(*startState).AddTransition(Transition(letter, IndexOfState(endState)));
+	startState->AddTransition(Transition(letter, IndexOfState(endState)));
 
 	this->currentState = this->start;
 }
@@ -116,7 +116,7 @@ bool StateMachine::Recognize(String word)
 
 void StateMachine::AddState(State* state)
 {
-	if ((*state).IsFinal())
+	if (state->IsFinal())
 	{
 		this->finalStates.push_back(state);
 	}
@@ -153,21 +153,21 @@ StateMachine StateMachine::Union(const StateMachine& other) const
 		std::vector<Transition> temp = (*other.states[i]).GetAllTransitions();
 		for (int j = 0; j < temp.size(); j++)
 		{
-			(*newMachine.states[i + this->states.size()]).AddTransition(Transition(temp[j].GetLetter(), oldStatesToNew[temp[i].Transist()]));
+			newMachine.states[i + this->states.size()]->AddTransition(Transition(temp[j].GetLetter(), oldStatesToNew[temp[i].Transist()]));
 		}
 	}
 
 	//Make the new start do the work of the old start of this
-	std::vector<Transition> temp = (*this->start).GetAllTransitions();
-	(*newStart).AddFunctionality(this->start, false);
+	std::vector<Transition> temp = this->start->GetAllTransitions();
+	newStart->AddFunctionality(this->start, false);
 
 	//Make the new start do the work of the start of other
-	temp = (*other.start).GetAllTransitions();
+	temp = other.start->GetAllTransitions();
 	for (int i = 0; i < temp.size(); i++)
 	{
 		Transition t = temp[i];
 		Transition newT(t.GetLetter(), oldStatesToNew[t.Transist()]);
-		(*newStart).AddTransition(newT);
+		newStart->AddTransition(newT);
 	}
 
 	newMachine.start = newStart;
@@ -195,8 +195,8 @@ StateMachine StateMachine::Concatenate(const StateMachine& other) const
 		std::vector<Transition> temp = (*other.states[i]).GetAllTransitions();
 		for (int j = 0; j < temp.size(); j++)
 		{
-			(*newMachine.states[i + this->states.size()])
-				.AddTransition(Transition(temp[j].GetLetter(),oldStatesToNew[temp[j].Transist()]));
+			newMachine.states[i + this->states.size()]->
+				       AddTransition(Transition(temp[j].GetLetter(),oldStatesToNew[temp[j].Transist()]));
 		}
 	}
 
@@ -204,17 +204,17 @@ StateMachine StateMachine::Concatenate(const StateMachine& other) const
 	int endStatesCount = this->finalStates.size();
 	for (int i = 0; i < endStatesCount; i++)
 	{
-		std::vector<Transition> temp = (*other.start).GetAllTransitions();
+		std::vector<Transition> temp = other.start->GetAllTransitions();
 		for (int j = 0; j < temp.size(); j++)
 		{
 			Transition t = temp[j];
 			Transition newT(t.GetLetter(), oldStatesToNew[t.Transist()]);
-			(*newMachine.finalStates[i]).AddTransition(newT);
+			newMachine.finalStates[i]->AddTransition(newT);
 		}
 	}
 
 	//the final states remain final if the start of the second was final
-	if (!(*(other.start)).IsFinal())
+	if (!(other.start->IsFinal()))
 	{
 		for (int i = 0; i < this->finalStates.size(); i++)
 		{

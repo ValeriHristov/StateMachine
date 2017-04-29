@@ -12,7 +12,6 @@ public:
 	State(bool isFinal);
 	State();
 	State(const State*);
-	bool operator==(const State&) const;
 	void AddTransition(const Transition&);
 	bool IsFinal() const;
 	std::vector<Transition> Transist(String word) const;
