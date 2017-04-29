@@ -12,7 +12,7 @@ public:
 	String(char);
 	~String();
 	String& operator=(const String&);
-	int GetLength() const;
+	int Length() const;
 	char operator[](int)const;
 	String operator+(const String&) const;
 	String operator+(const char*)const;
@@ -23,9 +23,13 @@ public:
 	void Append(const char*);
 	String Concatenate(const String&) const;
 	void Print()const;
+	//Gets an array of chars and the chars count. Returns true if any of the chars is contained at least once in the string.
+	bool ContainsAny(char*, int count) const;
 	int Count(char) const;
 	int IndexOf(char) const;
-	int IndexOf(char ch, int startIndex)const ;
+	int IndexOf(char ch, int startIndex)const;
+	//Gets an array of chars and the chars count. Returns the first index a char is contained in the string.
+	int FirstIndexOfAny(char* chars, int count) const;
 	int LastIndexOf(char) const;
 	String Substring(int start, int len) const;
 	String Substring(int start) const;

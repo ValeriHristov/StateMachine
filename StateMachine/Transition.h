@@ -11,5 +11,6 @@ public:
 	Transition();
 	char GetLetter() const;
 	int Transist() const;
+	bool operator==(const Transition&) const;
 };
 

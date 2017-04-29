@@ -3,16 +3,30 @@
 int main()
 {
 
-	StateMachine b;
+
+
+	StateMachine h("aaaa");
+	StateMachine b("bb");
+	StateMachine un = h.Union(b);
+	//StateMachine b//("a|aaaac|b"); 
+	//	= StateMachine('a').Union((StateMachine("aaaac")).Union(StateMachine("b")));
+	//StateMachine ac = b;
+	//std::cout << b.Recognize("a");
+	//std::cout << b.Recognize("b");
+	//std::cout << b.Recognize("aaaac");
+	//std::cout << b.Recognize("ab");
+	//std::cout<<unity.Recognize("a");
+	//a.GetRegex().Print();
+	/*StateMachine b;
 	StateMachine ac;
 	if (true)
 	{
-		StateMachine a('a');
-		StateMachine c('c');
-		 ac = a.Union(c).Iteration();
+	StateMachine a('a');
+	StateMachine c('c');
+	ac = a.Union(c).Iteration();
 	}
 
-	std::cout << ac.Recognize("acaaacb");
+	std::cout << ac.Recognize("acaaacb");*/
 
 
 	/*while (true)

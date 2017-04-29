@@ -21,3 +21,8 @@ int Transition::Transist() const
 {
 	return this->indexOfNextState;
 }
+
+bool Transition::operator==(const Transition& other) const
+{
+	return this->letter == other.letter && this->indexOfNextState == other.indexOfNextState;
+}

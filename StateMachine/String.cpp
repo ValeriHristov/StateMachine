@@ -8,7 +8,7 @@ String::String()
 }
 String::String(const String& str)
 {
-	this->length = str.GetLength();
+	this->length = str.Length();
 	this->content = new char[this->length];
 	for (int i = 0; i < this->length; i++)
 	{
@@ -44,12 +44,12 @@ String String::operator+(const char* str) const
 }
 String& String::operator=(const String& str)
 {
-	if (this== &str)
+	if (this == &str)
 	{
 		return *this;
 	}
 	delete this->content;
-	this->length = str.GetLength();
+	this->length = str.Length();
 	this->content = new char[this->length];
 	for (int i = 0; i < this->length; i++)
 	{
@@ -90,7 +90,7 @@ bool String::operator==(const String& other) const
 	}
 	return true;
 }
-int String::GetLength() const
+int String::Length() const
 {
 	return this->length;
 }
@@ -103,13 +103,13 @@ String String::Concatenate(const String& str) const
 void String::Append(const String& str)
 {
 	char* temp = this->content;
-	this->length += str.GetLength();
+	this->length += str.Length();
 	this->content = new char[this->length];
-	for (int i = 0; i < this->length - str.GetLength(); i++)
+	for (int i = 0; i < this->length - str.Length(); i++)
 	{
 		this->content[i] = temp[i];
 	}
-	for (int i = this->length - str.GetLength(), j = 0; i < this->length; i++, j++)
+	for (int i = this->length - str.Length(), j = 0; i < this->length; i++, j++)
 	{
 		this->content[i] = str[j];
 	}
@@ -141,17 +141,46 @@ int String::IndexOf(char ch, int startIndex) const
 	}
 	return -1;
 }
+int String::FirstIndexOfAny(char* chars, int count) const
+{
+	int minIndex = this->length;
+	int charIndex = -1;
+	for (int i = 0; i < count; i++)
+	{
+		charIndex = this->IndexOf(chars[i]);
+		if (charIndex > -1 && minIndex > charIndex)
+		{
+			minIndex = charIndex;
+		}
+	}
+	if (minIndex== this->length)
+	{
+		return -1;
+	}
+	return minIndex;
+}
 int String::Count(char ch) const
 {
 	int counter = 0;
 	for (int i = 0; i < this->length; i++)
 	{
-		if (this->content[i]==ch)
+		if (this->content[i] == ch)
 		{
 			counter++;
 		}
 	}
 	return counter;
+}
+bool String::ContainsAny(char* chars, int count)const
+{
+	for (int i = 0; i < count; i++)
+	{
+		if (this->Count(chars[i]) != 0)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 int String::LastIndexOf(char ch) const
 {
@@ -171,7 +200,7 @@ String String::Substring(int start, int len) const
 		return String();
 	}
 	String t;
-	if (start+len> this->length)
+	if (start + len> this->length)
 	{
 		len = this->length - start;
 	}
@@ -196,19 +225,19 @@ std::vector<String> String::Split(char delimiter) const
 	int currIndex = 0;
 	int indexOfDelimiter = this->IndexOf(delimiter);
 	for (int i = 0; i < count; i++)
-	{		
-		result.push_back(String(this->Substring(currIndex, indexOfDelimiter-currIndex)));
-		currIndex = indexOfDelimiter+1;
+	{
+		result.push_back(String(this->Substring(currIndex, indexOfDelimiter - currIndex)));
+		currIndex = indexOfDelimiter + 1;
 		indexOfDelimiter = this->IndexOf(delimiter, currIndex);
 	}
 	result.push_back(String(this->Substring(currIndex)));
-	
+
 	//Remove empty entries
-	for (int i = result.size()-1; i >= 0; i--)
+	for (int i = result.size() - 1; i >= 0; i--)
 	{
 		if (result[i] == String())
 		{
-			result.erase(result.begin()+i);
+			result.erase(result.begin() + i);
 		}
 	}
 
