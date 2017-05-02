@@ -34,4 +34,7 @@ public:
 	String Substring(int start, int len) const;
 	String Substring(int start) const;
 	std::vector<String> Split(char delimiter = ' ')const;
+	//Inserts the given char at the given index
+	void InsertAt(int index, char ch);
+	void InsertAt(int index, String str);
 };

@@ -2,6 +2,8 @@
 #include <unordered_map>
 #include <ctype.h>
 #include <iostream>
+#include <stack>
+#include <queue>
 #include "StateMachine.h"
 
 bool ValidateRegex(String regex)
@@ -46,6 +48,7 @@ void StateMachine::CopyStateMachine(StateMachine& dest, const StateMachine& sour
 		}
 		dest.states.push_back(t);
 	}
+	dest.RemoveUnreachableStates();
 }
 
 void StateMachine::DeleteStateMachine(StateMachine& machine)
@@ -66,8 +69,7 @@ void StateMachine::DeleteStateMachine(StateMachine& machine)
 	}
 }
 
-//TODO implement the proper recursive algorithm
-void StateMachine::RemoveUnreachableStates()
+std::vector<int> StateMachine::GetUnreachableStatesIndexes() const
 {
 	int size = this->states.size();
 	bool* isStateReachable = new bool[size];
@@ -85,21 +87,43 @@ void StateMachine::RemoveUnreachableStates()
 			isStateReachable[t[j].Transist()] = true;
 		}
 	}
-
-	std::vector<int> deletedStatesIndexes;
+	std::vector<int> UnreachableStatesIndexes;
 	for (int i = size - 1; i >= 0; i--)
 	{
 		if (!isStateReachable[i])
 		{
-			this->states.erase(this->states.begin() + i);
-			deletedStatesIndexes.push_back(i);
+			UnreachableStatesIndexes.push_back(i);
 		}
 	}
+	return UnreachableStatesIndexes;
+	delete[] isStateReachable;
+}
+
+//TODO implement the proper recursive algorithm
+void StateMachine::RemoveUnreachableStates()
+{
+
+	std::vector<int> deletedStatesIndexes = this->GetUnreachableStatesIndexes();
+	for (size_t i = 0; i < deletedStatesIndexes.size(); i++)
+	{
+		this->states.erase(this->states.begin() + deletedStatesIndexes[i]);
+	}
+
+	this->MapTransitionsToNewIndexes(deletedStatesIndexes);
+
+}
+
+void StateMachine::MapTransitionsToNewIndexes(std::vector<int> deletedStatesIndexes)
+{
 	State* temp;
 	std::vector<Transition> transitions;
-
 	for (int k = 0; k < deletedStatesIndexes.size(); k++)
 	{
+		if (deletedStatesIndexes[k] < this->start)
+		{
+			this->start--;
+			this->currentState = this->start;
+		}
 		for (int i = 0; i < this->states.size(); i++)
 		{
 			temp = this->states[i];
@@ -115,7 +139,7 @@ void StateMachine::RemoveUnreachableStates()
 			}
 			if (needsChange)
 			{
-				State modifiedState;
+				State modifiedState(temp->IsFinal());
 				for (int g = 0; g < transitions.size(); g++)
 				{
 					Transition trans = transitions[g];
@@ -132,11 +156,11 @@ void StateMachine::RemoveUnreachableStates()
 			}
 		}
 	}
-	delete[] isStateReachable;
 }
 
 StateMachine::StateMachine()
 {
+	//this->Calculate("aaa.c.|bb.c|g|");
 	this->regex = String();
 	State* startState = new State(true);
 	AddState(startState);
@@ -167,12 +191,17 @@ StateMachine::StateMachine(char letter)
 
 StateMachine::StateMachine(String regex)
 {
-	if (!ValidateRegex(regex))
+	/*if (!ValidateRegex(regex))
 	{
-		std::cerr << "Invalid regex. Creating an empty state machine";
+	std::cerr << "Invalid regex. Creating an empty state machine";
+	*this = StateMachine();
+	}*/
+
+	regex = this->RegexToRPN(regex);
+	if (regex.Length() == 0)
+	{
 		*this = StateMachine();
 	}
-
 	if (!(regex.ContainsAny(SpecialSymbols, strlen(SpecialSymbols))))
 	{
 		StateMachine newMachine(regex[0]);
@@ -185,27 +214,150 @@ StateMachine::StateMachine(String regex)
 		return;
 	}
 
-	int index = regex.FirstIndexOfAny(SpecialSymbols, strlen(SpecialSymbols));
-	StateMachine temp(regex.Substring(0, index));
-
-	if (regex[index] == '(')
-	{
-		String sub = regex.Substring(index + 1);
-		StateMachine t(sub);
-		temp = temp.Concatenate(temp);
-	}
-	else if (regex[index] == ')')
-	{
-		*this = temp;
-		return;
-	}
-	else if (regex[index] == '|')
-	{
-		temp = temp.Union(StateMachine(regex.Substring(index + 1)));
-	}
-	*this = temp;
-	this->regex = regex;
+	*this = this->Calculate(regex);
 	this->RemoveUnreachableStates();
+}
+
+String StateMachine::AddConcatenationOperator(String regex) const
+{
+	bool isPreviousLetter = false;
+	bool isPreviousRightBracket = false;
+	for (int i = 0; i < regex.Length(); i++)
+	{
+		if ((isPreviousLetter || isPreviousRightBracket) && (isalpha(regex[i]) || isdigit(regex[i])))
+		{
+			regex.InsertAt(i, '.');
+		}
+		isPreviousLetter = isalpha(regex[i]) || isdigit(regex[i]);
+		isPreviousRightBracket = regex[i] == ')';
+	}
+	return regex;
+}
+
+struct Operator
+{
+	char ch;
+	int priority;
+	Operator(char ch)
+	{
+		this->ch = ch;
+		if (ch == '|')
+		{
+			this->priority = 1;
+		}
+		else if (ch == '.')
+		{
+			this->priority = 2;
+		}
+	}
+	bool operator>(Operator& other)
+	{
+		return this->priority > other.priority;
+	}
+};
+
+//Shunting-yard algorithm
+String StateMachine::RegexToRPN(String regex) const
+{
+	std::queue<char> output;
+	std::stack<Operator> operations;
+	String newRegex = this->AddConcatenationOperator(regex);
+	char curr;
+	for (int i = 0; i < newRegex.Length(); i++)
+	{
+		curr = newRegex[i];
+		if (isalpha(curr) || isdigit(curr))
+		{
+			output.push(curr);
+		}
+		else if (curr == '(')
+		{
+			operations.push(curr);
+		}
+		else if (curr==')')
+		{
+			while (operations.top().ch != '(')
+			{
+				output.push(operations.top().ch);
+				operations.pop();
+			}
+			operations.pop();
+		}
+		else if (curr == '*')
+		{
+			output.push(curr);
+		}
+		else 
+		{
+			Operator op(curr);
+			if (operations.size() == 0 || op>operations.top())
+			{
+				operations.push(op);
+			}
+			else
+			{
+				while (!(op > operations.top()))
+				{
+					output.push(operations.top().ch);
+					operations.pop();
+				}
+				operations.push(op);
+			}
+		}
+	}
+	while (operations.size()>0)
+	{
+		output.push(operations.top().ch);
+		operations.pop();
+	}
+	String result;
+
+	while (output.size()>0)
+	{
+		result.Append(output.front());
+		output.pop();
+	}
+	return result;
+}
+
+//Creates a state machine using regular expression in reverse polish notation
+StateMachine StateMachine::Calculate(String expr)
+{
+	std::stack<StateMachine> machines;
+	for (int i = 0; i < expr.Length(); i++)
+	{
+		char t = expr[i];
+		if (t == '|')
+		{
+			StateMachine a = machines.top();
+			machines.pop();
+			StateMachine b = machines.top();
+			machines.pop();
+			machines.push(b.Union(a));
+		}
+		else if (t == '.')
+		{
+			StateMachine a = machines.top();
+			machines.pop();
+			StateMachine b = machines.top();
+			machines.pop();
+			StateMachine res = b.Concatenate(a);
+			res.RemoveUnreachableStates();
+			machines.push(res);
+
+		}
+		else if (t == '*')
+		{
+			StateMachine a = machines.top();
+			machines.pop();
+			machines.push(a.Iteration());
+		}
+		else
+		{
+			machines.push(StateMachine(t));
+		}
+	}
+	return machines.top();
 }
 
 StateMachine::~StateMachine()
@@ -259,6 +411,10 @@ String StateMachine::GetRegex() const
 
 StateMachine StateMachine::Union(const StateMachine& other) const
 {
+	if (this == &other)
+	{
+		return *this;
+	}
 	StateMachine newMachine(*this);
 	newMachine.regex.Append(String(String("|") + other.regex));
 
@@ -282,15 +438,7 @@ StateMachine StateMachine::Union(const StateMachine& other) const
 		std::vector<Transition> temp = other.states[i]->GetAllTransitions();
 		for (int j = 0; j < temp.size(); j++)
 		{
-			//TEMPORAL
-			/*	int index1 = i + this->states.size();
-				State* tempState = newMachine.states[index1];
-				int stateTransist = temp[j].Transist();
-				char letter1 = temp[j].GetLetter();
-				Transition trans(letter1, oldStatesToNew[stateTransist]);
-				tempState->AddTransition(trans);*/
-			//TEMPORAL
-			newMachine.states[i + this->states.size()+1]->
+			newMachine.states[i + this->states.size() + 1]->
 				AddTransition(Transition(temp[j].GetLetter(), oldStatesToNew[temp[j].Transist()]));
 		}
 	}
@@ -386,5 +534,6 @@ StateMachine StateMachine::Iteration() const
 	}
 	newMachine.start = this->IndexOfState(newState);
 	newMachine.currentState = newMachine.start;
+	newMachine.RemoveUnreachableStates();
 	return newMachine;
 }

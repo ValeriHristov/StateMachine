@@ -11,14 +11,19 @@ private:
 	String regex;
 	int start;
 	int currentState;
+	char* SpecialSymbols = "|()*.\0";
 	std::vector<State*> states;
 	std::vector<State*> finalStates;
 	void AddState(State*);
 	void CopyStateMachine(StateMachine&, const StateMachine&);
 	void DeleteStateMachine(StateMachine&);
 	void RemoveUnreachableStates();
-	int IndexOfState(const State*) const;
-	char* SpecialSymbols = "|()*\0";
+	int IndexOfState(const State*) const;	
+	String RegexToRPN(String regex) const;
+	void MapTransitionsToNewIndexes(std::vector<int>);
+	std::vector<int> GetUnreachableStatesIndexes() const;
+	StateMachine Calculate(String regex);
+	String AddConcatenationOperator(String regex) const;
 public:
 	StateMachine(char letter);
 	StateMachine();

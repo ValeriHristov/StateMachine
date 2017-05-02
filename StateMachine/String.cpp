@@ -243,4 +243,14 @@ std::vector<String> String::Split(char delimiter) const
 
 	return result;
 }
-
+void String::InsertAt(int index,char ch)
+{
+	this->InsertAt(index, String(ch));
+}
+void String::InsertAt(int index, String str)
+{
+	String tmp = this->Substring(0, index);
+	tmp.Append(str);
+	tmp.Append(this->Substring(index));
+	*this = tmp;
+}
