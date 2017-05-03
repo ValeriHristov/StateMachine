@@ -32,7 +32,7 @@ String::String(char ch)
 }
 String::~String()
 {
-	delete this->content;
+	delete[] this->content;
 }
 String String::operator+(const String& str) const
 {
@@ -48,7 +48,7 @@ String& String::operator=(const String& str)
 	{
 		return *this;
 	}
-	delete this->content;
+	delete[] this->content;
 	this->length = str.Length();
 	this->content = new char[this->length];
 	for (int i = 0; i < this->length; i++)

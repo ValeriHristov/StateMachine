@@ -67,6 +67,7 @@ void StateMachine::DeleteStateMachine(StateMachine& machine)
 	{
 		this->finalStates.pop_back();
 	}
+	std::cout<<std::endl;
 }
 
 std::vector<int> StateMachine::GetUnreachableStatesIndexes() const
@@ -95,22 +96,21 @@ std::vector<int> StateMachine::GetUnreachableStatesIndexes() const
 			UnreachableStatesIndexes.push_back(i);
 		}
 	}
-	return UnreachableStatesIndexes;
 	delete[] isStateReachable;
+	return UnreachableStatesIndexes;
 }
 
 //TODO implement the proper recursive algorithm
 void StateMachine::RemoveUnreachableStates()
-{
-
+{	
 	std::vector<int> deletedStatesIndexes = this->GetUnreachableStatesIndexes();
 	for (size_t i = 0; i < deletedStatesIndexes.size(); i++)
 	{
+		delete this->states[deletedStatesIndexes[i]];
 		this->states.erase(this->states.begin() + deletedStatesIndexes[i]);
 	}
-
+	
 	this->MapTransitionsToNewIndexes(deletedStatesIndexes);
-
 }
 
 void StateMachine::MapTransitionsToNewIndexes(std::vector<int> deletedStatesIndexes)
@@ -152,6 +152,7 @@ void StateMachine::MapTransitionsToNewIndexes(std::vector<int> deletedStatesInde
 						modifiedState.AddTransition(trans);
 					}
 				}
+
 				*temp = modifiedState;
 			}
 		}
@@ -186,18 +187,16 @@ StateMachine::StateMachine(char letter)
 	this->start = this->IndexOfState(startState);
 	this->currentState = this->start;
 	startState->AddTransition(Transition(letter, IndexOfState(endState)));
-
 }
 
 StateMachine::StateMachine(String regex)
 {
-	/*if (!ValidateRegex(regex))
+	if (!ValidateRegex(regex))
 	{
-	std::cerr << "Invalid regex. Creating an empty state machine";
-	*this = StateMachine();
-	}*/
+		std::cerr << "Invalid regex. Creating an empty state machine";
+		*this = StateMachine();
+	}
 
-	regex = this->RegexToRPN(regex);
 	if (regex.Length() == 0)
 	{
 		*this = StateMachine();
@@ -213,9 +212,9 @@ StateMachine::StateMachine(String regex)
 		this->RemoveUnreachableStates();
 		return;
 	}
-
+	regex = this->RegexToRPN(regex);
 	*this = this->Calculate(regex);
-	this->RemoveUnreachableStates();
+	this->RemoveUnreachableStates();	
 }
 
 String StateMachine::AddConcatenationOperator(String regex) const
@@ -274,7 +273,7 @@ String StateMachine::RegexToRPN(String regex) const
 		{
 			operations.push(curr);
 		}
-		else if (curr==')')
+		else if (curr == ')')
 		{
 			while (operations.top().ch != '(')
 			{
@@ -287,16 +286,16 @@ String StateMachine::RegexToRPN(String regex) const
 		{
 			output.push(curr);
 		}
-		else 
+		else
 		{
 			Operator op(curr);
-			if (operations.size() == 0 || op>operations.top())
+			if (operations.size() == 0 || op > operations.top())
 			{
 				operations.push(op);
 			}
 			else
 			{
-				while (!(op > operations.top()))
+				while (!(operations.size() == 0 || op > operations.top()))
 				{
 					output.push(operations.top().ch);
 					operations.pop();
@@ -305,14 +304,14 @@ String StateMachine::RegexToRPN(String regex) const
 			}
 		}
 	}
-	while (operations.size()>0)
+	while (operations.size() > 0)
 	{
 		output.push(operations.top().ch);
 		operations.pop();
 	}
 	String result;
 
-	while (output.size()>0)
+	while (output.size() > 0)
 	{
 		result.Append(output.front());
 		output.pop();
@@ -333,7 +332,8 @@ StateMachine StateMachine::Calculate(String expr)
 			machines.pop();
 			StateMachine b = machines.top();
 			machines.pop();
-			machines.push(b.Union(a));
+			StateMachine un = b.Union(a);
+			machines.push(un);
 		}
 		else if (t == '.')
 		{
@@ -344,7 +344,6 @@ StateMachine StateMachine::Calculate(String expr)
 			StateMachine res = b.Concatenate(a);
 			res.RemoveUnreachableStates();
 			machines.push(res);
-
 		}
 		else if (t == '*')
 		{

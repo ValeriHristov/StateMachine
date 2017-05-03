@@ -2,8 +2,9 @@
 #include <iostream>
 int main()
 {
-	StateMachine a("(abv|aed)a*");
-	std::cout << a.Recognize("abv") << a.Recognize("abva") << a.Recognize("aed") << a.Recognize("aeda") << a.Recognize("a");
+	StateMachine a("(((abv|aed)a*)|(git))*");
+	std::cout << a.Recognize("abv") << a.Recognize("abva") << a.Recognize("aed") << a.Recognize("aeda") << a.Recognize("a")
+		<< a.Recognize("git") << a.Recognize("gitgit") << a.Recognize("abvagit");
 
 	return 0;
 }

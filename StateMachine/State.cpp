@@ -4,6 +4,7 @@ State::State()
 {
 	this->isFinal = false;
 }
+
 State::State(bool isEnd)
 {
 	this->isFinal = isEnd;
@@ -18,7 +19,7 @@ State::State(const State* state)
 void State::AddFunctionality(const State& other, bool copyIsFinal)
 {
 	std::vector<Transition> temp = other.GetAllTransitions();
-	for (int i = 0; i < temp.capacity(); i++)
+	for (int i = 0; i < temp.size(); i++)
 	{
 		this->AddTransition(temp[i]);
 	}
@@ -52,7 +53,7 @@ std::vector<Transition> State::GetAllTransitions() const
 {
 	std::vector<Transition> temp;
 	for (const auto &myPair : this->transitions) {
-		for (int i = 0; i < myPair.second.capacity(); i++)
+		for (int i = 0; i < myPair.second.size(); i++)
 		{
 			temp.push_back(myPair.second[i]);
 		}

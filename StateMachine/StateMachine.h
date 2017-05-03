@@ -10,6 +10,7 @@ class StateMachine
 private:
 	String regex;
 	int start;
+	
 	int currentState;
 	char* SpecialSymbols = "|()*.\0";
 	std::vector<State*> states;
@@ -36,8 +37,6 @@ public:
 	StateMachine Concatenate(const StateMachine& other) const;
 	StateMachine Iteration() const;
 	String GetRegex() const;
-	//TODO remove unreacheable states
 	//TODO determination
 	//TODO minimization
-	//TODO use string instead of char*
 };
