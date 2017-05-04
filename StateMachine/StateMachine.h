@@ -1,16 +1,15 @@
 #pragma once
 #include <vector>
 #include <unordered_map>
-#include "State.h"
 #include "Transition.h"
 #include "String.h"
+#include "StateUnion.h"
 
 class StateMachine
 {
 private:
 	String regex;
-	int start;
-	
+	std::vector<int> starts;
 	int currentState;
 	char* SpecialSymbols = "|()*.\0";
 	std::vector<State*> states;

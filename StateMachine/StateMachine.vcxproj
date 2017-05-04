@@ -78,13 +78,16 @@
   <ItemGroup>
     <ClInclude Include="State.h" />
     <ClInclude Include="StateMachine.h" />
+    <ClInclude Include="StateUnion.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="Transition.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Sorted.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="StateMachine.cpp" />
+    <ClCompile Include="StateUnion.cpp" />
     <ClCompile Include="String.cpp" />
     <ClCompile Include="Transition.cpp" />
   </ItemGroup>
