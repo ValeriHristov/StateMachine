@@ -24,6 +24,7 @@ private:
 	std::vector<int> GetUnreachableStatesIndexes() const;
 	StateMachine Calculate(String regex);
 	String AddConcatenationOperator(String regex) const;
+	bool RecognizeHelper(String word);
 public:
 	StateMachine(char letter);
 	StateMachine();

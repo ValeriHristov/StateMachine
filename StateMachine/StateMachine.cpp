@@ -29,19 +29,11 @@ int StateMachine::IndexOfState(const State* state) const
 void StateMachine::CopyStateMachine(StateMachine& dest, const StateMachine& source)
 {
 	dest.regex = source.regex;
-
+	dest.starts = source.starts;
 	int size = source.states.size();
 	for (int i = 0; i < size; i++)
 	{
 		State* t = new State(source.states[i]);
-		if (source.states[i] == source.states[source.start])
-		{
-			dest.start = i;
-		}
-		if (source.states[i] == source.states[source.currentState])
-		{
-			dest.currentState = i;
-		}
 		if (t->IsFinal())
 		{
 			dest.finalStates.push_back(t);
@@ -67,9 +59,14 @@ void StateMachine::DeleteStateMachine(StateMachine& machine)
 	{
 		this->finalStates.pop_back();
 	}
-	std::cout<<std::endl;
+	size = this->starts.size();
+	for (int i = 0; i < size; i++)
+	{
+		this->starts.pop_back();
+	}
 }
 
+//TODO implement the proper recursive algorithm
 std::vector<int> StateMachine::GetUnreachableStatesIndexes() const
 {
 	int size = this->states.size();
@@ -78,7 +75,10 @@ std::vector<int> StateMachine::GetUnreachableStatesIndexes() const
 	{
 		isStateReachable[i] = false;
 	}
-	isStateReachable[start] = true;
+	for (int i = 0; i < this->starts.size(); i++)
+	{
+		isStateReachable[this->starts[i]] = true;
+	}
 	std::vector<Transition> t;
 	for (int i = 0; i < size; i++)
 	{
@@ -100,7 +100,6 @@ std::vector<int> StateMachine::GetUnreachableStatesIndexes() const
 	return UnreachableStatesIndexes;
 }
 
-//TODO implement the proper recursive algorithm
 void StateMachine::RemoveUnreachableStates()
 {	
 	std::vector<int> deletedStatesIndexes = this->GetUnreachableStatesIndexes();
@@ -119,10 +118,16 @@ void StateMachine::MapTransitionsToNewIndexes(std::vector<int> deletedStatesInde
 	std::vector<Transition> transitions;
 	for (int k = 0; k < deletedStatesIndexes.size(); k++)
 	{
-		if (deletedStatesIndexes[k] < this->start)
+		for (int i = 0; i < this->starts.size(); i++)
 		{
-			this->start--;
-			this->currentState = this->start;
+			if (deletedStatesIndexes[k] < this->starts[i])
+			{
+				this->starts[i]--;
+			}
+		}
+		if (deletedStatesIndexes[k] < this->currentState)
+		{
+			this->currentState--;;
 		}
 		for (int i = 0; i < this->states.size(); i++)
 		{
@@ -165,8 +170,8 @@ StateMachine::StateMachine()
 	this->regex = String();
 	State* startState = new State(true);
 	AddState(startState);
-	this->start = 0;
-	this->currentState = this->start;
+	this->starts.push_back(0);
+	this->currentState = this->starts[0];
 }
 
 StateMachine::StateMachine(const StateMachine& other)
@@ -184,8 +189,8 @@ StateMachine::StateMachine(char letter)
 	AddState(startState);
 	AddState(endState);
 
-	this->start = this->IndexOfState(startState);
-	this->currentState = this->start;
+	this->starts.push_back(this->IndexOfState(startState));
+	this->currentState = this->starts[0];
 	startState->AddTransition(Transition(letter, IndexOfState(endState)));
 }
 
@@ -371,26 +376,36 @@ StateMachine& StateMachine::operator=(const StateMachine& other)
 	return *this;
 }
 
-bool StateMachine::Recognize(String word)
+bool StateMachine::RecognizeHelper(String word)
 {
 	if (word.Length() == 0)
 	{
 		return this->states[currentState]->IsFinal();
 	}
-
 	std::vector<Transition> transitions = this->states[currentState]->Transist(word);
 	bool recognized = false;
 	for (int i = 0; i < transitions.size(); i++)
 	{
 		this->currentState = transitions[i].Transist();
-		recognized = recognized || this->Recognize(word.Substring(1));
+		recognized = recognized || this->RecognizeHelper(word.Substring(1));
 		if (recognized)
 		{
-			this->currentState = this->start;
 			return true;
 		}
 	}
-	this->currentState = this->start;
+	return false;
+}
+
+bool StateMachine::Recognize(String word)
+{	
+	for (int i = 0; i < this->starts.size(); i++)
+	{
+		this->currentState = this->starts[i];
+		if (this->RecognizeHelper(word))
+		{
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -418,7 +433,16 @@ StateMachine StateMachine::Union(const StateMachine& other) const
 	newMachine.regex.Append(String(String("|") + other.regex));
 
 	// the new start is also an end if any of the old starts are end
-	State* newStart = new State(this->states[this->start]->IsFinal() || other.states[other.start]->IsFinal());
+	bool isFinal = false;
+	for (int i = 0; i < this->starts.size() && !isFinal; i++)
+	{
+		isFinal =  isFinal || this->states[this->starts[i]]->IsFinal();
+	}
+	for (int i = 0; i < other.starts.size() && !isFinal; i++)
+	{
+		isFinal = isFinal || other.states[this->starts[i]]->IsFinal();
+	}
+	State* newStart = new State(isFinal);
 	newMachine.AddState(newStart);
 
 	//add all states from the other machine
@@ -443,24 +467,32 @@ StateMachine StateMachine::Union(const StateMachine& other) const
 	}
 
 	//Make the new start do the work of the old start of this
-	std::vector<Transition> temp = this->states[this->start]->GetAllTransitions();
-	for (int i = 0; i < temp.size(); i++)
+	std::vector<Transition> temp;
+	for (int k = 0; k < this->starts.size(); k++)
 	{
-		Transition t = temp[i];
-		Transition newT(t.GetLetter(), t.Transist());
-		newStart->AddTransition(newT);
+		temp = this->states[this->starts[k]]->GetAllTransitions();
+		for (int i = 0; i < temp.size(); i++)
+		{
+			Transition t = temp[i];
+			Transition newT(t.GetLetter(), t.Transist());
+			newStart->AddTransition(newT);
+		}
 	}
 
 	//Make the new start do the work of the start of other
-	temp = other.states[other.start]->GetAllTransitions();
-	for (int i = 0; i < temp.size(); i++)
+	for (int k = 0; k < other.starts.size(); k++)
 	{
-		Transition t = temp[i];
-		Transition newT(t.GetLetter(), oldStatesToNew[t.Transist()]);
-		newStart->AddTransition(newT);
+		temp = other.states[other.starts[k]]->GetAllTransitions();
+		for (int i = 0; i < temp.size(); i++)
+		{
+			Transition t = temp[i];
+			Transition newT(t.GetLetter(), oldStatesToNew[t.Transist()]);
+			newStart->AddTransition(newT);
+		}
 	}
-
-	newMachine.start = newMachine.IndexOfState(newStart);
+	
+	newMachine.starts.clear();
+	newMachine.starts.push_back(newMachine.IndexOfState(newStart));
 	newMachine.currentState = newMachine.IndexOfState(newStart);
 	newMachine.RemoveUnreachableStates();
 	return newMachine;
@@ -494,19 +526,28 @@ StateMachine StateMachine::Concatenate(const StateMachine& other) const
 
 	//make the final states of the first do the work of the start of the second
 	int endStatesCount = this->finalStates.size();
+	std::vector<Transition> temp;
 	for (int i = 0; i < endStatesCount; i++)
 	{
-		std::vector<Transition> temp = other.states[other.start]->GetAllTransitions();
-		for (int j = 0; j < temp.size(); j++)
+		for (int k = 0; k < other.starts.size(); k++)
 		{
-			Transition t = temp[j];
-			Transition newT(t.GetLetter(), oldStatesToNew[t.Transist()]);
-			newMachine.finalStates[i]->AddTransition(newT);
-		}
+			temp = other.states[other.starts[k]]->GetAllTransitions();
+			for (int j = 0; j < temp.size(); j++)
+			{
+				Transition t = temp[j];
+				Transition newT(t.GetLetter(), oldStatesToNew[t.Transist()]);
+				newMachine.finalStates[i]->AddTransition(newT);
+			}
+		}		
 	}
 
 	//the final states remain final if the start of the second was final
-	if (!(other.states[other.start]->IsFinal()))
+	bool isFinal = false;
+	for (int i = 0; i < other.starts.size() && !isFinal; i++)
+	{
+		isFinal = isFinal||other.states[other.starts[i]]->IsFinal();
+	}
+	if (!isFinal)
 	{
 		for (int i = 0; i < this->finalStates.size(); i++)
 		{
@@ -523,16 +564,22 @@ StateMachine StateMachine::Iteration() const
 	newMachine.AddState(newState);
 
 	int endStatesCount = newMachine.finalStates.size();
-	std::vector<Transition> t = this->states[this->start]->GetAllTransitions();
-	for (int i = 0; i < endStatesCount; i++)
+	std::vector<Transition> t;
+	for (int k = 0; k < this->starts.size(); k++)
 	{
-		for (int j = 0; j < t.size(); j++)
+		t = this->states[this->starts[k]]->GetAllTransitions();
+		for (int i = 0; i < endStatesCount; i++)
 		{
-			newMachine.finalStates[i]->AddTransition(t[j]);
+			for (int j = 0; j < t.size(); j++)
+			{
+				newMachine.finalStates[i]->AddTransition(t[j]);
+			}
 		}
 	}
-	newMachine.start = this->IndexOfState(newState);
-	newMachine.currentState = newMachine.start;
+	
+	newMachine.starts.clear();
+	newMachine.starts.push_back(this->IndexOfState(newState));
+	newMachine.currentState = newMachine.starts[0];
 	newMachine.RemoveUnreachableStates();
 	return newMachine;
 }
