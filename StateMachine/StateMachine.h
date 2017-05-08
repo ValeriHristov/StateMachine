@@ -38,6 +38,7 @@ public:
 	StateMachine Iteration() const;
 	String GetRegex() const;
 	void Determinate();
-	//TODO determination
+	void Reverse();
+	void Minimize();
 	//TODO minimization
 };

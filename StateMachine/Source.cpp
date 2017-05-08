@@ -3,14 +3,22 @@
 #include "Sorted.cpp"
 int main()
 {
-	StateMachine a = StateMachine("a")
-		.Union((StateMachine("a"))
-		.Union(StateMachine("a")));
+	//StateMachine a = StateMachine("a*");
 		//.Union(StateMachine("a")));
-	//StateMachine a("a|ab|ac");
-	a.Determinate();
-	//std::cout << a.Recognize("abv") << a.Recognize("abva") << a.Recognize("aed") << a.Recognize("aeda") << a.Recognize("a")
-	//	<< a.Recognize("git") << a.Recognize("gitgit") << a.Recognize("abvagit");
+	String regex = "bor|bora|borut|borove|borovete|bob|boba|bobut|bobove|bobovete|rob|roba|robut|robi|robite";
+	StateMachine a(regex);
+	std::vector<String> tests = regex.Split('|');
+	for (int i = 0; i < tests.size(); i++)
+	{
+		std::cout<<a.Recognize(tests[i]);
+	}
+	a.Minimize();
+	a.Minimize();
+	a.Minimize();
+	for (int i = 0; i < tests.size(); i++)
+	{
+		std::cout << a.Recognize(tests[i]);
+	}
 
 	return 0;
 }

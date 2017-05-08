@@ -571,6 +571,7 @@ StateMachine StateMachine::Concatenate(const StateMachine& other) const
 StateMachine StateMachine::Iteration() const
 {
 	StateMachine newMachine(*this);
+	newMachine.regex = this->regex + "*";
 	State* newState = new State(true);
 	newMachine.AddState(newState);
 
@@ -660,7 +661,6 @@ void StateMachine::Determinate()
 	for (int i = 0; i < states.size(); i++)
 	{
 		Sorted<int> indexes = states[i]->GetStatesIndexes();
-		indexes.Print();
 		bool isFinal = false;
 		for (int i = 0; i < indexes.Length(); i++)
 		{
@@ -686,4 +686,55 @@ void StateMachine::Determinate()
 	}
 	newMachine.starts.push_back(0);
 	*this = newMachine;
+}
+
+void StateMachine::Reverse()
+{
+	StateMachine newMachine;
+	int startsCounter = 0;
+	for (int i = 0; i < this->states.size(); i++)
+	{
+		State* state;
+		if (this->states[i]->IsFinal())
+		{
+			state = new State();
+			newMachine.AddState(state);
+			newMachine.starts.push_back(i);
+			continue;
+		}
+		else if (startsCounter < this->starts.size() && this->starts[startsCounter] == i)
+		{
+			state = new State(true);
+			newMachine.AddState(state);
+			startsCounter++;
+			continue;
+		}
+		state = new State();
+		newMachine.AddState(state);
+
+	}
+	std::vector<Transition> t;
+	int index;
+	char letter;
+	for (int i = 0; i < this->states.size(); i++)
+	{
+		t = this->states[i]->GetAllTransitions();
+		for (int j = 0; j < t.size(); j++)
+		{
+			index = t[j].Transist();
+			letter = t[j].GetLetter();
+			newMachine.states[index]->AddTransition(Transition(letter, i));
+		}
+	}
+
+	*this = newMachine;
+}
+
+void StateMachine::Minimize()
+{
+	this->Determinate();
+	this->Reverse();
+	this->Determinate();
+	this->Reverse();
+	this->Determinate();
 }
