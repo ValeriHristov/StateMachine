@@ -18,6 +18,10 @@ public:
 	void RemoveElement(T& element);
 	void Print() const;
 	int IndexOf(const T&) const;
+	int Length() const
+	{
+		return this->length;
+	}
 };
 
 template <typename T>
@@ -125,8 +129,6 @@ void Sorted<T>::Print() const
 		std::cout << arr[i] << " ";
 	}
 	std::cout << std::endl;
-	std::cout << "Length: ";
-	std::cout << length;
 }
 
 template <typename T>
@@ -199,3 +201,4 @@ T Sorted<T>::operator[](int index) const
 {
 	return this->arr[index];
 }
+

@@ -60,3 +60,20 @@ std::vector<Transition> State::GetAllTransitions() const
 	}
 	return temp;
 }
+
+std::vector<std::vector<Transition>> State::GetAllTransitionsGrouped() const
+{
+	std::vector<std::vector<Transition>> result;
+	std::vector<Transition> temp;
+	
+	for (const auto &myPair : this->transitions) 
+	{
+		for (int i = 0; i < myPair.second.size(); i++)
+		{
+			temp.push_back(myPair.second[i]);
+		}
+		result.push_back(temp);
+		temp.clear();
+	}
+	return result;
+}

@@ -37,6 +37,7 @@ public:
 	StateMachine Concatenate(const StateMachine& other) const;
 	StateMachine Iteration() const;
 	String GetRegex() const;
+	void Determinate();
 	//TODO determination
 	//TODO minimization
 };

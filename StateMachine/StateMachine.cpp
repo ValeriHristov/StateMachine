@@ -6,6 +6,18 @@
 #include <queue>
 #include "StateMachine.h"
 
+int IndexOfStateUnion(std::vector<StateUnion*> vector, const StateUnion& state)
+{
+	for (int i = 0; i < vector.size(); i++)
+	{
+		if ((*(vector[i])) == state)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
 bool ValidateRegex(String regex)
 {
 	char t;
@@ -101,14 +113,14 @@ std::vector<int> StateMachine::GetUnreachableStatesIndexes() const
 }
 
 void StateMachine::RemoveUnreachableStates()
-{	
+{
 	std::vector<int> deletedStatesIndexes = this->GetUnreachableStatesIndexes();
 	for (size_t i = 0; i < deletedStatesIndexes.size(); i++)
 	{
 		delete this->states[deletedStatesIndexes[i]];
 		this->states.erase(this->states.begin() + deletedStatesIndexes[i]);
 	}
-	
+
 	this->MapTransitionsToNewIndexes(deletedStatesIndexes);
 }
 
@@ -166,12 +178,11 @@ void StateMachine::MapTransitionsToNewIndexes(std::vector<int> deletedStatesInde
 
 StateMachine::StateMachine()
 {
-	//this->Calculate("aaa.c.|bb.c|g|");
-	this->regex = String();
+	this->regex = String();/*
 	State* startState = new State(true);
 	AddState(startState);
 	this->starts.push_back(0);
-	this->currentState = this->starts[0];
+	this->currentState = this->starts[0];*/
 }
 
 StateMachine::StateMachine(const StateMachine& other)
@@ -219,7 +230,7 @@ StateMachine::StateMachine(String regex)
 	}
 	regex = this->RegexToRPN(regex);
 	*this = this->Calculate(regex);
-	this->RemoveUnreachableStates();	
+	this->RemoveUnreachableStates();
 }
 
 String StateMachine::AddConcatenationOperator(String regex) const
@@ -397,7 +408,7 @@ bool StateMachine::RecognizeHelper(String word)
 }
 
 bool StateMachine::Recognize(String word)
-{	
+{
 	for (int i = 0; i < this->starts.size(); i++)
 	{
 		this->currentState = this->starts[i];
@@ -436,11 +447,11 @@ StateMachine StateMachine::Union(const StateMachine& other) const
 	bool isFinal = false;
 	for (int i = 0; i < this->starts.size() && !isFinal; i++)
 	{
-		isFinal =  isFinal || this->states[this->starts[i]]->IsFinal();
+		isFinal = isFinal || this->states[this->starts[i]]->IsFinal();
 	}
 	for (int i = 0; i < other.starts.size() && !isFinal; i++)
 	{
-		isFinal = isFinal || other.states[this->starts[i]]->IsFinal();
+		isFinal = isFinal || other.states[other.starts[i]]->IsFinal();
 	}
 	State* newStart = new State(isFinal);
 	newMachine.AddState(newStart);
@@ -490,7 +501,7 @@ StateMachine StateMachine::Union(const StateMachine& other) const
 			newStart->AddTransition(newT);
 		}
 	}
-	
+
 	newMachine.starts.clear();
 	newMachine.starts.push_back(newMachine.IndexOfState(newStart));
 	newMachine.currentState = newMachine.IndexOfState(newStart);
@@ -538,14 +549,14 @@ StateMachine StateMachine::Concatenate(const StateMachine& other) const
 				Transition newT(t.GetLetter(), oldStatesToNew[t.Transist()]);
 				newMachine.finalStates[i]->AddTransition(newT);
 			}
-		}		
+		}
 	}
 
 	//the final states remain final if the start of the second was final
 	bool isFinal = false;
 	for (int i = 0; i < other.starts.size() && !isFinal; i++)
 	{
-		isFinal = isFinal||other.states[other.starts[i]]->IsFinal();
+		isFinal = isFinal || other.states[other.starts[i]]->IsFinal();
 	}
 	if (!isFinal)
 	{
@@ -576,10 +587,103 @@ StateMachine StateMachine::Iteration() const
 			}
 		}
 	}
-	
+
 	newMachine.starts.clear();
 	newMachine.starts.push_back(this->IndexOfState(newState));
 	newMachine.currentState = newMachine.starts[0];
 	newMachine.RemoveUnreachableStates();
 	return newMachine;
+}
+
+void StateMachine::Determinate()
+{
+	//Unite the start states
+	StateUnion* newState = new StateUnion(false);
+	int processedSoFar = 0;
+	std::vector<StateUnion*> states;
+	std::vector<std::vector<Transition>> t;
+	std::vector<Transition > transitions;
+	for (int i = 0; i < this->starts.size(); i++)
+	{
+		newState->AddStateIndex(this->starts[i]);
+		transitions = this->states[this->starts[i]]->GetAllTransitions();
+	}
+	states.push_back(newState);
+	bool isChanged = false;
+
+	//Process until no new states are created
+	do
+	{
+		isChanged = false;
+		//add transitions to the new unions
+		for (int i = processedSoFar; i < states.size(); i++)
+		{
+			Sorted<int> indexes = states[i]->GetStatesIndexes();
+			for (int j = 0; j < indexes.Length(); j++)
+			{
+				transitions = this->states[indexes[j]]->GetAllTransitions();
+
+				for (int k = 0; k < transitions.size(); k++)
+				{
+					states[i]->AddTransition(transitions[k]);
+					isChanged = true;
+				}
+			}
+		}
+
+		//create the new unions
+		for (int g = processedSoFar; g < states.size(); g++)
+		{
+			t = states[g]->GetAllTransitionsGrouped();
+			for (int i = 0; i < t.size(); i++)
+			{
+				StateUnion temp;
+				for (int j = 0; j < t[i].size(); j++)
+				{
+					temp.AddStateIndex(t[i][j].Transist());
+				}
+				if (IndexOfStateUnion(states, temp) == -1)
+				{
+					states.push_back(new StateUnion(temp));
+				}
+			}
+			if (t.size() > 0)
+			{
+				processedSoFar++;
+			}
+		}
+	} while (processedSoFar != states.size() && isChanged);
+
+	//add the states to the machine with the correct transitions
+	StateMachine newMachine;
+	newMachine.regex = this->regex;
+	for (int i = 0; i < states.size(); i++)
+	{
+		Sorted<int> indexes = states[i]->GetStatesIndexes();
+		indexes.Print();
+		bool isFinal = false;
+		for (int i = 0; i < indexes.Length(); i++)
+		{
+			if (this->states[indexes[i]]->IsFinal())
+			{
+				isFinal = true;
+				break;
+			}
+		}
+		State* newState = new State(isFinal);
+		t = states[i]->GetAllTransitionsGrouped();
+		for (int j = 0; j < t.size(); j++)
+		{
+			StateUnion temp;
+			for (int k = 0; k < t[j].size(); k++)
+			{
+				temp.AddStateIndex(t[j][k].Transist());
+			}
+
+			newState->AddTransition(Transition(t[j][0].GetLetter(), IndexOfStateUnion(states, temp)));
+		}
+		newMachine.AddState(newState);
+	}
+	newMachine.starts.push_back(0);
+	*this = newMachine;
 }
