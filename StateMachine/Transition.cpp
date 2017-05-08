@@ -1,5 +1,5 @@
 #include "Transition.h"
-
+#include <iostream>
 //Transition::Transition(char letter, State* to)
 //{
 //	this->letter = letter;
@@ -25,4 +25,9 @@ int Transition::Transist() const
 bool Transition::operator==(const Transition& other) const
 {
 	return this->letter == other.letter && this->indexOfNextState == other.indexOfNextState;
+}
+
+void Transition::Print() const
+{
+	std::cout << this->letter << " " << this->Transist() << std::endl;
 }

@@ -19,5 +19,5 @@ public:
 	std::vector<Transition> GetAllTransitions() const;
 	std::vector<std::vector<Transition>> GetAllTransitionsGrouped() const;
 	void AddFunctionality(const State&, bool copyIsFinal);
-
+	void Print() const;
 };

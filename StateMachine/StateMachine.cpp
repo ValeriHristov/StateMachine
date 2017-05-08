@@ -738,3 +738,19 @@ void StateMachine::Minimize()
 	this->Reverse();
 	this->Determinate();
 }
+
+void StateMachine::Print() const
+{
+	this->regex.Print();
+	std::cout << "Start indexes: ";
+	for (int i = 0; i < this->starts.size(); i++)
+	{
+		std::cout << this->starts[i] << ", ";
+	}
+	std::cout << std::endl;
+	for (int i = 0; i < this->states.size(); i++)
+	{
+		std::cout<< "State " << i << ": " << std::endl;
+		this->states[i]->Print();
+	}
+}

@@ -40,5 +40,6 @@ public:
 	void Determinate();
 	void Reverse();
 	void Minimize();
+	void Print() const;
 	//TODO minimization
 };

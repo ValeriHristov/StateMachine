@@ -1,5 +1,5 @@
 #include "State.h"
-
+#include <iostream>
 State::State()
 {
 	this->isFinal = false;
@@ -76,4 +76,14 @@ std::vector<std::vector<Transition>> State::GetAllTransitionsGrouped() const
 		temp.clear();
 	}
 	return result;
+}
+
+void State::Print() const
+{
+	std::cout << "Finality: " << this->isFinal << std::endl;
+	std::vector<Transition> t = this->GetAllTransitions();
+	for (int i = 0; i < t.size(); i++)
+	{
+		t[i].Print();
+	}
 }
