@@ -211,6 +211,7 @@ StateMachine::StateMachine(String regex)
 	{
 		std::cerr << "Invalid regex. Creating an empty state machine";
 		*this = StateMachine();
+		return;
 	}
 
 	if (regex.Length() == 0)
@@ -372,6 +373,17 @@ StateMachine StateMachine::Calculate(String expr)
 			machines.push(StateMachine(t));
 		}
 	}
+	while (machines.size() > 1)
+	{
+		StateMachine a = machines.top();
+		machines.pop();
+		StateMachine b = machines.top();
+		machines.pop();
+		StateMachine res = b.Concatenate(a);
+		res.RemoveUnreachableStates();
+		machines.push(res);
+	}
+
 	return machines.top();
 }
 
@@ -633,7 +645,8 @@ void StateMachine::Determinate()
 		}
 
 		//create the new unions
-		for (int g = processedSoFar; g < states.size(); g++)
+		int size = states.size();
+		for (int g = processedSoFar; g < size; g++)
 		{
 			t = states[g]->GetAllTransitionsGrouped();
 			for (int i = 0; i < t.size(); i++)
@@ -648,10 +661,8 @@ void StateMachine::Determinate()
 					states.push_back(new StateUnion(temp));
 				}
 			}
-			if (t.size() > 0)
-			{
-				processedSoFar++;
-			}
+			processedSoFar++;
+
 		}
 	} while (processedSoFar != states.size() && isChanged);
 
@@ -679,7 +690,6 @@ void StateMachine::Determinate()
 			{
 				temp.AddStateIndex(t[j][k].Transist());
 			}
-
 			newState->AddTransition(Transition(t[j][0].GetLetter(), IndexOfStateUnion(states, temp)));
 		}
 		newMachine.AddState(newState);
@@ -694,22 +704,16 @@ void StateMachine::Reverse()
 	int startsCounter = 0;
 	for (int i = 0; i < this->states.size(); i++)
 	{
-		State* state;
+		State* state = new State();
+		if (startsCounter < this->starts.size() && this->starts[startsCounter] == i)
+		{
+			startsCounter++;
+			state->AddFunctionality(State(true), true);
+		}
 		if (this->states[i]->IsFinal())
 		{
-			state = new State();
-			newMachine.AddState(state);
 			newMachine.starts.push_back(i);
-			continue;
 		}
-		else if (startsCounter < this->starts.size() && this->starts[startsCounter] == i)
-		{
-			state = new State(true);
-			newMachine.AddState(state);
-			startsCounter++;
-			continue;
-		}
-		state = new State();
 		newMachine.AddState(state);
 
 	}
@@ -750,7 +754,7 @@ void StateMachine::Print() const
 	std::cout << std::endl;
 	for (int i = 0; i < this->states.size(); i++)
 	{
-		std::cout<< "State " << i << ": " << std::endl;
+		std::cout << "State " << i << ": " << std::endl;
 		this->states[i]->Print();
 	}
 }
