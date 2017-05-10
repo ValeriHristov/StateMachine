@@ -238,14 +238,21 @@ String StateMachine::AddConcatenationOperator(String regex) const
 {
 	bool isPreviousLetter = false;
 	bool isPreviousRightBracket = false;
+	bool isPreviousIteration = false;
+	bool isLetter=false;
+	bool isCurrentLeftBracket = false;
 	for (int i = 0; i < regex.Length(); i++)
 	{
-		if ((isPreviousLetter || isPreviousRightBracket) && (isalpha(regex[i]) || isdigit(regex[i])))
+		isLetter = isalpha(regex[i]) || isdigit(regex[i]);
+		isCurrentLeftBracket = regex[i] == '(';
+		isPreviousLetter = isalpha(regex[i-1]) || isdigit(regex[i-1]);
+		if (((isPreviousLetter || isPreviousRightBracket || isPreviousIteration) && isLetter) || (isCurrentLeftBracket && isPreviousLetter))
 		{
 			regex.InsertAt(i, '.');
 		}
 		isPreviousLetter = isalpha(regex[i]) || isdigit(regex[i]);
 		isPreviousRightBracket = regex[i] == ')';
+		isPreviousIteration = regex[i] == '*';
 	}
 	return regex;
 }
@@ -662,7 +669,6 @@ void StateMachine::Determinate()
 				}
 			}
 			processedSoFar++;
-
 		}
 	} while (processedSoFar != states.size() && isChanged);
 
