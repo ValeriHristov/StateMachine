@@ -20,4 +20,5 @@ public:
 	std::vector<std::vector<Transition>> GetAllTransitionsGrouped() const;
 	void AddFunctionality(const State&, bool copyIsFinal);
 	void Print() const;
+	bool HasTransition(const Transition&);
 };

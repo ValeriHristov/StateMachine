@@ -97,13 +97,9 @@ void Sorted<T>::AddElement(T& element)
 		return;
 	}
 	T* temp = this->arr;
-	bool expanded = false;
-	if (this->capacity == this->length)
-	{
-		this->arr = new T[this->capacity * 2];
-		this->capacity *= 2;
-		expanded = true;
-	}
+
+	this->arr = new T[++this->capacity];
+
 	for (int i = 0; i < index; i++)
 	{
 		this->arr[i] = temp[i];
@@ -113,10 +109,9 @@ void Sorted<T>::AddElement(T& element)
 	{
 		this->arr[i] = temp[i - 1];
 	}
-	if (expanded)
-	{
-		delete[] temp;
-	}
+
+	delete[] temp;
+
 	this->length++;
 }
 
@@ -169,13 +164,13 @@ void Sorted<T>::RemoveElement(T& element)
 template <typename T>
 bool Sorted<T>::operator==(const Sorted<T>& other) const
 {
-	if (this->length!=other.length)
+	if (this->length != other.length)
 	{
 		return false;
 	}
 	for (int i = 0; i < this->length; i++)
 	{
-		if (!(this->arr[i]==other.arr[i]))
+		if (!(this->arr[i] == other.arr[i]))
 		{
 			return false;
 		}
@@ -195,7 +190,7 @@ int Sorted<T>::IndexOf(const T& element) const
 	}
 	return -1;
 }
- 
+
 template <typename T>
 T Sorted<T>::operator[](int index) const
 {

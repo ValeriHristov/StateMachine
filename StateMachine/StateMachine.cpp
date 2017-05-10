@@ -231,7 +231,6 @@ StateMachine::StateMachine(String regex)
 	}
 	regex = this->RegexToRPN(regex);
 	*this = this->Calculate(regex);
-	this->RemoveUnreachableStates();
 }
 
 String StateMachine::AddConcatenationOperator(String regex) const
@@ -603,7 +602,10 @@ StateMachine StateMachine::Iteration() const
 		{
 			for (int j = 0; j < t.size(); j++)
 			{
-				newMachine.finalStates[i]->AddTransition(t[j]);
+				if (!newMachine.finalStates[i]->HasTransition(t[j]))
+				{
+					newMachine.finalStates[i]->AddTransition(t[j]);
+				}				
 			}
 		}
 	}
@@ -626,7 +628,6 @@ void StateMachine::Determinate()
 	for (int i = 0; i < this->starts.size(); i++)
 	{
 		newState->AddStateIndex(this->starts[i]);
-		transitions = this->states[this->starts[i]]->GetAllTransitions();
 	}
 	states.push_back(newState);
 	bool isChanged = false;
@@ -661,7 +662,9 @@ void StateMachine::Determinate()
 				StateUnion temp;
 				for (int j = 0; j < t[i].size(); j++)
 				{
+					Transition tempo = t[i][j];
 					temp.AddStateIndex(t[i][j].Transist());
+					temp.GetStatesIndexes().Print();
 				}
 				if (IndexOfStateUnion(states, temp) == -1)
 				{

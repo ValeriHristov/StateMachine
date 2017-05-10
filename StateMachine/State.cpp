@@ -31,6 +31,10 @@ void State::AddFunctionality(const State& other, bool copyIsFinal)
 
 void State::AddTransition(const Transition& tr)
 {
+	if (this->HasTransition(tr))
+	{
+		return;
+	}
 	this->transitions[tr.GetLetter()].push_back(tr);
 }
 
@@ -65,8 +69,8 @@ std::vector<std::vector<Transition>> State::GetAllTransitionsGrouped() const
 {
 	std::vector<std::vector<Transition>> result;
 	std::vector<Transition> temp;
-	
-	for (const auto &myPair : this->transitions) 
+
+	for (const auto &myPair : this->transitions)
 	{
 		for (int i = 0; i < myPair.second.size(); i++)
 		{
@@ -86,4 +90,17 @@ void State::Print() const
 	{
 		t[i].Print();
 	}
+}
+
+bool State::HasTransition(const Transition& tr)
+{
+	std::vector<Transition> t = this->transitions[tr.GetLetter()];
+	for (int i = 0; i < t.size(); i++)
+	{
+		if (t[i] == tr)
+		{
+			return true;
+		}
+	}
+	return false;
 }
