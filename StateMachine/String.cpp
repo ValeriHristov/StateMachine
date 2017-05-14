@@ -1,6 +1,7 @@
 #include "String.h"
 #include <cstring>
 #include <iostream>
+#include <cassert>
 String::String()
 {
 	this->content = nullptr;
@@ -90,6 +91,43 @@ bool String::operator==(const String& other) const
 	}
 	return true;
 }
+bool String::operator!=(const String& other) const
+{
+	return !((*this) == other);
+}
+std::istream& operator>>(std::istream& is, String& s)
+{
+	s = "";
+	while (is.peek())
+	{
+		char input = is.get();
+		if (input!= '\n')
+		{
+			s.Append(input);
+		}
+		else
+		{
+			break;
+		}
+	}
+	return is;
+}
+std::ostream& operator<<(std::ostream& os, String& s)
+{	
+	for (int i = 0; i < s.length; i++)
+	{
+		os << s[i];
+	}
+	return os;
+}
+String::operator int() const
+{
+	return this->ToInt();
+}
+String::operator double() const
+{
+	return this->ToDouble();
+}
 int String::Length() const
 {
 	return this->length;
@@ -153,7 +191,7 @@ int String::FirstIndexOfAny(char* chars, int count) const
 			minIndex = charIndex;
 		}
 	}
-	if (minIndex== this->length)
+	if (minIndex == this->length)
 	{
 		return -1;
 	}
@@ -243,7 +281,7 @@ std::vector<String> String::Split(char delimiter) const
 
 	return result;
 }
-void String::InsertAt(int index,char ch)
+void String::InsertAt(int index, char ch)
 {
 	this->InsertAt(index, String(ch));
 }
@@ -253,4 +291,55 @@ void String::InsertAt(int index, String str)
 	tmp.Append(str);
 	tmp.Append(this->Substring(index));
 	*this = tmp;
+}
+int String::ToInt() const
+{
+	char temp;
+	for (int i = 0; i < this->length; i++)
+	{
+		if (i == 0 && this->content[i] == '-')
+		{
+			continue;
+		}
+		temp = this->content[i] - '0';
+		assert(!(temp < 0 || temp>9) && "Invalid input to parse!");
+	}
+	char* t = this->ToCharArray();
+	return atoi(t);
+}
+double String::ToDouble() const
+{
+	bool isFloating = false;
+	double result = 0;
+	char temp = ' ';
+	for (int i = 0; i < this->length; i++)
+	{
+		if (i == 0 && this->content[i] == '-')
+		{
+			continue;
+		}
+
+		if (this->content[i] == '.')
+		{
+			assert(!isFloating && "Invalid input to parse!");
+			isFloating = true;
+			continue;
+		}
+		temp = this->content[i] - '0';
+		assert(!(temp < 0 || temp>9) && "Invalid input to parse!");
+	}
+	char* a = this->ToCharArray();
+	result = atof(a);
+	delete[] a;
+	return result;
+}
+char* String::ToCharArray() const
+{
+	char* res = new char[this->length + 1];
+	for (int i = 0; i < this->length; i++)
+	{
+		res[i] = this->content[i];
+	}
+	res[this->length] = 0;
+	return res;
 }

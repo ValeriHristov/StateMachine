@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <iostream>
 class String
 {
 private:
@@ -19,6 +20,9 @@ public:
 	String& operator+=(const String&);
 	String& operator+=(const char*);
 	bool operator==(const String&) const;
+	bool operator!=(const String&) const;
+	operator int() const;
+	operator double() const;
 	void Append(const String&);
 	void Append(const char*);
 	String Concatenate(const String&) const;
@@ -37,4 +41,11 @@ public:
 	//Inserts the given char at the given index
 	void InsertAt(int index, char ch);
 	void InsertAt(int index, String str);
+	int ToInt() const;
+	double ToDouble() const;
+	char* ToCharArray() const;
+	friend std::ostream& operator<<(std::ostream& os, String& s);
+
+
 };
+std::istream& operator>>(std::istream& is, String& s);
