@@ -11,6 +11,7 @@ private:
 	String regex;
 	std::vector<int> starts;
 	int currentState;
+	bool isDeterministic;
 	char* SpecialSymbols = "|()*.\0";
 	std::vector<State*> states;
 	std::vector<State*> finalStates;
@@ -18,7 +19,7 @@ private:
 	void CopyStateMachine(StateMachine&, const StateMachine&);
 	void DeleteStateMachine(StateMachine&);
 	void RemoveUnreachableStates();
-	int IndexOfState(const State*) const;	
+	int IndexOfState(const State*) const;
 	String RegexToRPN(String regex) const;
 	void MapTransitionsToNewIndexes(std::vector<int>);
 	std::vector<int> GetUnreachableStatesIndexes() const;
@@ -33,6 +34,8 @@ public:
 	~StateMachine();
 	StateMachine& operator=(const StateMachine&);
 	bool Recognize(String word);
+	bool IsLanguageEmpty() const;
+	bool IsDeterministic() const;
 	StateMachine Union(const StateMachine& other)const;
 	StateMachine Concatenate(const StateMachine& other) const;
 	StateMachine Iteration() const;

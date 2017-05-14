@@ -42,6 +42,7 @@ void StateMachine::CopyStateMachine(StateMachine& dest, const StateMachine& sour
 {
 	dest.regex = source.regex;
 	dest.starts = source.starts;
+	dest.isDeterministic = source.isDeterministic;
 	int size = source.states.size();
 	for (int i = 0; i < size; i++)
 	{
@@ -178,11 +179,7 @@ void StateMachine::MapTransitionsToNewIndexes(std::vector<int> deletedStatesInde
 
 StateMachine::StateMachine()
 {
-	this->regex = String();/*
-	State* startState = new State(true);
-	AddState(startState);
-	this->starts.push_back(0);
-	this->currentState = this->starts[0];*/
+	this->regex = String();
 }
 
 StateMachine::StateMachine(const StateMachine& other)
@@ -203,13 +200,14 @@ StateMachine::StateMachine(char letter)
 	this->starts.push_back(this->IndexOfState(startState));
 	this->currentState = this->starts[0];
 	startState->AddTransition(Transition(letter, IndexOfState(endState)));
+	this->isDeterministic = false;
 }
 
 StateMachine::StateMachine(String regex)
 {
 	if (!ValidateRegex(regex))
 	{
-		std::cerr << "Invalid regex. Creating an empty state machine";
+		std::cerr << "Invalid regex. Creating an empty state machine\n";
 		*this = StateMachine();
 		return;
 	}
@@ -231,6 +229,7 @@ StateMachine::StateMachine(String regex)
 	}
 	regex = this->RegexToRPN(regex);
 	*this = this->Calculate(regex);
+	this->isDeterministic = false;
 }
 
 String StateMachine::AddConcatenationOperator(String regex) const
@@ -619,6 +618,10 @@ StateMachine StateMachine::Iteration() const
 
 void StateMachine::Determinate()
 {
+	if (this->isDeterministic)
+	{
+		return;
+	}
 	//Unite the start states
 	StateUnion* newState = new StateUnion(false);
 	int processedSoFar = 0;
@@ -682,9 +685,9 @@ void StateMachine::Determinate()
 	{
 		Sorted<int> indexes = states[i]->GetStatesIndexes();
 		bool isFinal = false;
-		for (int i = 0; i < indexes.Length(); i++)
+		for (int j = 0; j < indexes.Length(); j++)
 		{
-			if (this->states[indexes[i]]->IsFinal())
+			if (this->states[indexes[j]]->IsFinal())
 			{
 				isFinal = true;
 				break;
@@ -705,6 +708,7 @@ void StateMachine::Determinate()
 	}
 	newMachine.starts.push_back(0);
 	*this = newMachine;
+	this->isDeterministic = true;
 }
 
 void StateMachine::Reverse()
@@ -766,4 +770,14 @@ void StateMachine::Print() const
 		std::cout << "State " << i << ": " << std::endl;
 		this->states[i]->Print();
 	}
+}
+
+bool StateMachine::IsDeterministic() const
+{
+	return this->isDeterministic;
+}
+
+bool StateMachine::IsLanguageEmpty() const
+{
+	return this->regex == "";
 }
