@@ -76,6 +76,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ConsoleInterface.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="StateMachine.h" />
     <ClInclude Include="StateUnion.h" />
@@ -83,6 +84,7 @@
     <ClInclude Include="Transition.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ConsoleInterface.cpp" />
     <ClCompile Include="Sorted.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="State.cpp" />
