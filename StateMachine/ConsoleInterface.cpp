@@ -1,5 +1,15 @@
 #pragma once
 #include "ConsoleInterface.h"
+#include <fstream>
+
+bool ConsoleInterface::ValidateInput(String stringToInt, int parametersNeeded, std::vector<String> str) const
+{
+	if (stringToInt.TryParseToInt())
+	{
+		return str.size() == parametersNeeded;
+	}
+	return false;
+}
 
 void ConsoleInterface::Read(std::istream& is)
 {
@@ -15,23 +25,38 @@ void ConsoleInterface::Read(std::istream& is)
 		String command = parameters[0];
 		if (command == "Open")
 		{
-
+			if (parameters.size()!= 2)
+			{
+				this->os << "Invalid parameters!\n";
+				continue;
+			}
+			this->Open(parameters[1]);
 		}
 		else if (command == "List")
 		{
-
+			this->os << "Not implemented yet!\n";
 		}
 		else if (command == "Print")
 		{
-
+			if (!ValidateInput(parameters[1], 2, parameters))
+			{
+				this->os << "Invalid parameters!\n";
+				continue;
+			}
+			this->Print(parameters[1]);
 		}
 		else if (command == "Save")
 		{
-
+			if (!ValidateInput(parameters[1], 3, parameters))
+			{
+				this->os << "Invalid parameters!\n";
+				continue;
+			}
+			this->Save(parameters[1], parameters[2]);
 		}
 		else if (command == "Empty")
 		{
-			if (parameters.size()!=2)
+			if (!ValidateInput(parameters[1], 2, parameters))
 			{
 				this->os << "Invalid parameters!\n";
 				continue;
@@ -40,7 +65,7 @@ void ConsoleInterface::Read(std::istream& is)
 		}
 		else if (command == "Deterministic")
 		{
-			if (parameters.size() != 2)
+			if (!ValidateInput(parameters[1], 2, parameters))
 			{
 				this->os << "Invalid parameters!\n";
 				continue;
@@ -49,20 +74,23 @@ void ConsoleInterface::Read(std::istream& is)
 		}
 		else if (command == "Recognize")
 		{
-			if (parameters.size() > 3)
+			if (!ValidateInput(parameters[1], 3, parameters))
 			{
-				this->os << "Invalid parameters!\n";
-				continue;
-			}
-			else if (parameters.size() == 2)
-			{
-				parameters.push_back("");
+				if (ValidateInput(parameters[1], 2, parameters))
+				{
+					parameters.push_back(" ");
+				}
+				else
+				{
+					this->os << "Invalid parameters!\n";
+					continue;
+				}
 			}
 			this->Recognize(parameters[1], parameters[2]);
 		}
 		else if (command == "Union")
 		{
-			if (parameters.size() != 3)
+			if (!(ValidateInput(parameters[1], 3, parameters) && parameters[2].TryParseToInt()))
 			{
 				this->os << "Invalid parameters!\n";
 				continue;
@@ -71,7 +99,7 @@ void ConsoleInterface::Read(std::istream& is)
 		}
 		else if (command == "Concat")
 		{
-			if (parameters.size() != 3)
+			if (!(ValidateInput(parameters[1], 3, parameters) && parameters[2].TryParseToInt()))
 			{
 				this->os << "Invalid parameters!\n";
 				continue;
@@ -80,7 +108,7 @@ void ConsoleInterface::Read(std::istream& is)
 		}
 		else if (command == "Un")
 		{
-			if (parameters.size() != 2)
+			if (!ValidateInput(parameters[1], 2, parameters))
 			{
 				this->os << "Invalid parameters!\n";
 				continue;
@@ -89,6 +117,10 @@ void ConsoleInterface::Read(std::istream& is)
 		}
 		else if (command == "Reg")
 		{
+			if (parameters.size()==1)
+			{
+				parameters.push_back("");
+			}
 			if (parameters.size() != 2)
 			{
 				this->os << "Invalid parameters!\n";
@@ -110,9 +142,45 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->SetDestination(parameters[2]);
 		}
+		else if (command == "Minimize")
+		{
+			if (!ValidateInput(parameters[1], 2, parameters))
+			{
+				this->os << "Invalid parameters!\n";
+				continue;
+			}
+			this->Minimize(parameters[1]);
+		}
+		else if (command == "Determinate")
+		{
+			if (!ValidateInput(parameters[1], 2, parameters))
+			{
+				this->os << "Invalid parameters!\n";
+				continue;
+			}
+			this->Determinate(parameters[1]);
+		}
+		else if (command == "Reverse")
+		{
+			if (!ValidateInput(parameters[1], 2, parameters))
+			{
+				this->os << "Invalid parameters!\n";
+				continue;
+			}
+			this->Reverse(parameters[1]);
+		}
+		else if (command == "Language")
+		{
+			if (!ValidateInput(parameters[1], 2, parameters))
+			{
+				this->os << "Invalid parameters!\n";
+				continue;
+			}
+			this->PrintLanguage(parameters[1]);
+		}
 		else if (command == "Close")
 		{
-			this->os << "Closing the program!";
+			this->os << "Closing the program!\n";
 			return;
 		}
 	}
@@ -227,10 +295,96 @@ void ConsoleInterface::IsDeterministic(int index) const
 	bool result = this->elements[index].IsDeterministic();
 	if (result)
 	{
-		this->os << "The language of state machine with id " << index << " is deterministic!\n";
+		this->os << "The state machine with id " << index << " is deterministic!\n";
 	}
 	else
 	{
-		this->os << "The language of state machine with id " << index << " is NOT deterministic!\n";
+		this->os << "The state machine with id " << index << " is NOT deterministic!\n";
 	}
+}
+
+void ConsoleInterface::Minimize(int index)
+{
+	if (index > this->elements.size() - 1 || index < 0)
+	{
+		this->os << "Invalid state machine ids!\n";
+		return;
+	}
+
+	this->elements[index].Minimize();
+	this->os << "Succesfully minimized the state machine with id " << index << "\n";
+}
+
+void ConsoleInterface::Determinate(int index)
+{
+	if (index > this->elements.size() - 1 || index < 0)
+	{
+		this->os << "Invalid state machine ids!\n";
+		return;
+	}
+
+	this->elements[index].Determinate();
+	this->os << "Succesfully determinated the state machine with id " << index << "\n";
+}
+
+void ConsoleInterface::Reverse(int index)
+{
+	if (index > this->elements.size() - 1 || index < 0)
+	{
+		this->os << "Invalid state machine ids!\n";
+		return;
+	}
+	this->elements[index].Reverse();
+	this->os << "Succesfully reversed the state machine with id " << index << "\n";
+}
+
+void ConsoleInterface::PrintLanguage(int index) const
+{
+	if (index > this->elements.size() - 1 || index < 0)
+	{
+		this->os << "Invalid state machine ids!\n";
+		return;
+	}
+
+	char* output = this->elements[index].GetRegex().ToCharArray();
+	this->os << output  << '\n';
+	delete[] output;
+}
+
+void ConsoleInterface::Save(int index, String fileName) const
+{
+	if (index > this->elements.size() - 1 || index < 0)
+	{
+		this->os << "Invalid state machine ids!\n";
+		return;
+	}
+
+	char* fileNameTemp = fileName.ToCharArray();
+	std::ofstream ofs(fileNameTemp);
+	char* output = this->elements[index].ToString().ToCharArray();
+	ofs << output;
+	ofs.close();
+	delete[] fileNameTemp;
+	delete[] output;
+}
+
+void ConsoleInterface::Print(int index) const
+{
+	if (index > this->elements.size() - 1 || index < 0)
+	{
+		this->os << "Invalid state machine ids!\n";
+		return;
+	}
+
+	this->elements[index].TransitionsToString().Print();
+}
+
+void ConsoleInterface::Open(String fileName)
+{
+	char* temp = fileName.ToCharArray();
+	std::ifstream ifs(temp);
+	StateMachine a(ifs);
+	this->AddElement(a);
+	this->os << "Opened state machine with index " << this->elementsCount - 1 << "\n";
+	delete[] temp;
 }
