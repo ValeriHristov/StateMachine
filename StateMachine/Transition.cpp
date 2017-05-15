@@ -1,11 +1,5 @@
 #include "Transition.h"
 #include <iostream>
-//Transition::Transition(char letter, State* to)
-//{
-//	this->letter = letter;
-//	this->to = to;
-//}
-
 Transition::Transition(char letter, int index)
 {
 	this->letter = letter;
@@ -30,4 +24,15 @@ bool Transition::operator==(const Transition& other) const
 void Transition::Print() const
 {
 	std::cout << this->letter << " " << this->Transist() << std::endl;
+}
+
+String Transition::ToString() const
+{
+	String res;
+	res += this->letter;
+	res += " ";
+	char temp[15];
+	itoa(this->indexOfNextState, temp, 10);
+	res += temp;
+	return res;
 }

@@ -43,6 +43,7 @@ void StateMachine::CopyStateMachine(StateMachine& dest, const StateMachine& sour
 	dest.regex = source.regex;
 	dest.starts = source.starts;
 	dest.isDeterministic = source.isDeterministic;
+	dest.isReversed = source.isReversed;
 	int size = source.states.size();
 	for (int i = 0; i < size; i++)
 	{
@@ -180,6 +181,7 @@ void StateMachine::MapTransitionsToNewIndexes(std::vector<int> deletedStatesInde
 StateMachine::StateMachine()
 {
 	this->regex = String();
+	this->isReversed = false;
 }
 
 StateMachine::StateMachine(const StateMachine& other)
@@ -200,7 +202,8 @@ StateMachine::StateMachine(char letter)
 	this->starts.push_back(this->IndexOfState(startState));
 	this->currentState = this->starts[0];
 	startState->AddTransition(Transition(letter, IndexOfState(endState)));
-	this->isDeterministic = false;
+	this->isDeterministic = true;
+	this->isReversed = false;
 }
 
 StateMachine::StateMachine(String regex)
@@ -214,7 +217,8 @@ StateMachine::StateMachine(String regex)
 
 	if (regex.Length() == 0)
 	{
-		*this = StateMachine();
+		*this = StateMachine(' ');
+		return;
 	}
 	if (!(regex.ContainsAny(SpecialSymbols, strlen(SpecialSymbols))))
 	{
@@ -224,12 +228,75 @@ StateMachine::StateMachine(String regex)
 			newMachine = newMachine.Concatenate(StateMachine(regex[i]));
 		}
 		*this = newMachine;
-		this->RemoveUnreachableStates();
+		this->isReversed = false;
 		return;
 	}
 	regex = this->RegexToRPN(regex);
 	*this = this->Calculate(regex);
-	this->isDeterministic = false;
+	this->isDeterministic = this->CheckIfDeterministic();
+	this->isReversed = false;
+}
+StateMachine::StateMachine(std::ifstream& is)
+{
+	is >> this->regex;
+	String temp;
+	is >> temp;
+	auto args = temp.Split();
+	//add start states indexes
+	for (int i = 0; i < args.size(); i++)
+	{
+		this->starts.push_back(args[i].ToInt());
+	}
+
+	is >> temp;
+	args = temp.Split();
+	if (args.size()==0)
+	{
+		std::cout << "Invalid input. Creating an empty state machine!\n";
+		*this = StateMachine();
+		return;
+	}
+	//add all states until the last final
+	int max = args[args.size() - 1].ToInt();
+	int counter = 0;
+	int i = 0;
+	while (i <= max)
+	{
+		if (i == args[counter].ToInt())
+		{
+			this->AddState(new State(true));
+			counter++;
+		}
+		else
+		{
+			this->AddState(new State());
+		}
+		i++;
+	}
+
+	//add transitions and states not added yet	
+	char ch;
+	while (is.get(ch))
+	{
+		is >> temp;
+		temp.InsertAt(0, ch);
+		
+		args = temp.Split();
+		if (args.size() != 3)
+		{
+			std::cout << "Invalid input. Creating an empty state machine!\n";
+			*this = StateMachine();
+			return;
+		}
+		char letter = args[1][0];
+		int index = args[2].ToInt();
+		this->states[args[0].ToInt()]->AddTransition(Transition(letter, index));
+		while(index > this->states.size()-1)
+		{
+			this->AddState(new State());
+		}
+	}
+	this->isDeterministic = CheckIfDeterministic();
 }
 
 String StateMachine::AddConcatenationOperator(String regex) const
@@ -237,13 +304,13 @@ String StateMachine::AddConcatenationOperator(String regex) const
 	bool isPreviousLetter = false;
 	bool isPreviousRightBracket = false;
 	bool isPreviousIteration = false;
-	bool isLetter=false;
+	bool isLetter = false;
 	bool isCurrentLeftBracket = false;
 	for (int i = 0; i < regex.Length(); i++)
 	{
 		isLetter = isalpha(regex[i]) || isdigit(regex[i]);
 		isCurrentLeftBracket = regex[i] == '(';
-		isPreviousLetter = isalpha(regex[i-1]) || isdigit(regex[i-1]);
+		isPreviousLetter = isalpha(regex[i - 1]) || isdigit(regex[i - 1]);
 		if (((isPreviousLetter || isPreviousRightBracket || isPreviousIteration) && isLetter) || (isCurrentLeftBracket && isPreviousLetter))
 		{
 			regex.InsertAt(i, '.');
@@ -448,6 +515,10 @@ void StateMachine::AddState(State* state)
 
 String StateMachine::GetRegex() const
 {
+	if (isReversed)
+	{
+		return this->regex + "^R";
+	}
 	return this->regex;
 }
 
@@ -604,7 +675,7 @@ StateMachine StateMachine::Iteration() const
 				if (!newMachine.finalStates[i]->HasTransition(t[j]))
 				{
 					newMachine.finalStates[i]->AddTransition(t[j]);
-				}				
+				}
 			}
 		}
 	}
@@ -667,7 +738,6 @@ void StateMachine::Determinate()
 				{
 					Transition tempo = t[i][j];
 					temp.AddStateIndex(t[i][j].Transist());
-					temp.GetStatesIndexes().Print();
 				}
 				if (IndexOfStateUnion(states, temp) == -1)
 				{
@@ -707,6 +777,7 @@ void StateMachine::Determinate()
 		newMachine.AddState(newState);
 	}
 	newMachine.starts.push_back(0);
+	newMachine.regex = this->regex;
 	*this = newMachine;
 	this->isDeterministic = true;
 }
@@ -743,8 +814,11 @@ void StateMachine::Reverse()
 			newMachine.states[index]->AddTransition(Transition(letter, i));
 		}
 	}
-
+	newMachine.regex = this->regex;
+	newMachine.isReversed = this->isReversed;
 	*this = newMachine;
+	this->isReversed = !this->isReversed;
+	this->isDeterministic = false;
 }
 
 void StateMachine::Minimize()
@@ -758,18 +832,7 @@ void StateMachine::Minimize()
 
 void StateMachine::Print() const
 {
-	this->regex.Print();
-	std::cout << "Start indexes: ";
-	for (int i = 0; i < this->starts.size(); i++)
-	{
-		std::cout << this->starts[i] << ", ";
-	}
-	std::cout << std::endl;
-	for (int i = 0; i < this->states.size(); i++)
-	{
-		std::cout << "State " << i << ": " << std::endl;
-		this->states[i]->Print();
-	}
+	this->ToString().Print();
 }
 
 bool StateMachine::IsDeterministic() const
@@ -777,7 +840,78 @@ bool StateMachine::IsDeterministic() const
 	return this->isDeterministic;
 }
 
+bool StateMachine::CheckIfDeterministic() const
+{
+	for (int i = 0; i < this->states.size(); i++)
+	{
+		auto t = this->states[i]->GetAllTransitionsGrouped();
+		for (int j = 0; j < t.size(); j++)
+		{
+			if (t[j].size()>1)
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 bool StateMachine::IsLanguageEmpty() const
 {
 	return this->regex == "";
 }
+
+String StateMachine::ToString() const
+{
+	String result;
+	result.AppendLine(this->regex);
+
+	//add start states indexes
+	for (int i = 0; i < this->starts.size(); i++)
+	{
+		char ch[15];
+		itoa(this->starts[i], ch, 10);
+		String temp(ch);
+		temp.Append(" ");
+		result.Append(temp);
+	}
+	result.AppendLine("");
+
+	//add final states
+	for (int i = 0; i < this->states.size(); i++)
+	{
+		if (this->states[i]->IsFinal())
+		{
+			char ch[15];
+			itoa(i, ch, 10);
+			String temp(ch);
+			temp.Append(" ");
+			result.Append(temp);
+		}
+	}
+	result.AppendLine("");
+
+	//add transitions
+	result.Append(this->TransitionsToString());
+	return result;
+}
+
+String StateMachine::TransitionsToString() const
+{
+	String result;
+	for (int i = 0; i < this->states.size(); i++)
+	{
+		std::vector<Transition> t = this->states[i]->GetAllTransitions();
+		for (int j = 0; j < t.size(); j++)
+		{
+			char ch[15];
+			itoa(i, ch, 10);
+			String temp((ch));
+			temp.Append(" ");
+			temp.AppendLine(t[j].ToString());
+			result.Append(temp);
+		}
+	}
+	return result;
+}
+

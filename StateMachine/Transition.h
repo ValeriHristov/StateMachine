@@ -13,5 +13,6 @@ public:
 	int Transist() const;
 	bool operator==(const Transition&) const;
 	void Print() const;
+	String ToString() const;
 };
 

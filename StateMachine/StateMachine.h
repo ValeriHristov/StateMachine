@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include <unordered_map>
+#include <iostream>
+#include <fstream>
 #include "Transition.h"
 #include "String.h"
 #include "StateUnion.h"
@@ -12,6 +14,7 @@ private:
 	std::vector<int> starts;
 	int currentState;
 	bool isDeterministic;
+	bool isReversed;
 	char* SpecialSymbols = "|()*.\0";
 	std::vector<State*> states;
 	std::vector<State*> finalStates;
@@ -26,11 +29,13 @@ private:
 	StateMachine Calculate(String regex);
 	String AddConcatenationOperator(String regex) const;
 	bool RecognizeHelper(String word);
+	bool CheckIfDeterministic() const;
 public:
 	StateMachine(char letter);
 	StateMachine();
 	StateMachine(String);
 	StateMachine(const StateMachine&);
+	StateMachine(std::ifstream& is);
 	~StateMachine();
 	StateMachine& operator=(const StateMachine&);
 	bool Recognize(String word);
@@ -44,5 +49,6 @@ public:
 	void Reverse();
 	void Minimize();
 	void Print() const;
-	//TODO minimization
+	String ToString() const;
+	String TransitionsToString() const;
 };
