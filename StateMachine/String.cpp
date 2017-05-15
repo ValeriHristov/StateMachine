@@ -98,7 +98,7 @@ bool String::operator!=(const String& other) const
 std::istream& operator>>(std::istream& is, String& s)
 {
 	s = "";
-	while (is.peek())
+	while (is.peek()> 0)
 	{
 		char input = is.get();
 		if (input!= '\n')
@@ -156,6 +156,14 @@ void String::Append(const String& str)
 void String::Append(const char* ch)
 {
 	this->Append(String(ch));
+}
+void String::AppendLine(const String& str)
+{
+	this->Append(str + "\n");
+}
+void String::AppendLine(const char* ch)
+{
+	this->AppendLine(String(ch));
 }
 void String::Print() const
 {
@@ -294,24 +302,28 @@ void String::InsertAt(int index, String str)
 }
 int String::ToInt() const
 {
-	char temp;
-	for (int i = 0; i < this->length; i++)
-	{
-		if (i == 0 && this->content[i] == '-')
-		{
-			continue;
-		}
-		temp = this->content[i] - '0';
-		assert(!(temp < 0 || temp>9) && "Invalid input to parse!");
-	}
+	assert(TryParseToInt() && "Invalid input to parse!");
 	char* t = this->ToCharArray();
-	return atoi(t);
+	int result = atoi(t);
+	delete[] t;
+	return result;
 }
 double String::ToDouble() const
 {
 	bool isFloating = false;
 	double result = 0;
 	char temp = ' ';
+	assert(TryParseToDouble() && "Invalid input to parse!");
+	char* a = this->ToCharArray();
+	result = atof(a);
+	delete[] a;
+	return result;
+}
+bool String::TryParseToDouble() const
+{
+	bool isFloating = false;
+	double result = 0;
+	char temp;
 	for (int i = 0; i < this->length; i++)
 	{
 		if (i == 0 && this->content[i] == '-')
@@ -321,17 +333,37 @@ double String::ToDouble() const
 
 		if (this->content[i] == '.')
 		{
-			assert(!isFloating && "Invalid input to parse!");
+			if (isFloating)
+			{
+				return false;
+			}
 			isFloating = true;
 			continue;
 		}
 		temp = this->content[i] - '0';
-		assert(!(temp < 0 || temp>9) && "Invalid input to parse!");
+		if (temp < 0 || temp>9)
+		{
+			return false;
+		}
 	}
-	char* a = this->ToCharArray();
-	result = atof(a);
-	delete[] a;
-	return result;
+	return true;
+}
+bool String::TryParseToInt() const
+{
+	char temp;
+	for (int i = 0; i < this->length; i++)
+	{
+		if (i == 0 && this->content[i] == '-')
+		{
+			continue;
+		}
+		temp = this->content[i] - '0';
+		if (temp < 0 || temp>9)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 char* String::ToCharArray() const
 {

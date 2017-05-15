@@ -25,6 +25,8 @@ public:
 	operator double() const;
 	void Append(const String&);
 	void Append(const char*);
+	void AppendLine(const String&);
+	void AppendLine(const char*);
 	String Concatenate(const String&) const;
 	void Print()const;
 	//Gets an array of chars and the chars count. Returns true if any of the chars is contained at least once in the string.
@@ -43,9 +45,9 @@ public:
 	void InsertAt(int index, String str);
 	int ToInt() const;
 	double ToDouble() const;
+	bool TryParseToDouble() const;
+	bool TryParseToInt() const;
 	char* ToCharArray() const;
 	friend std::ostream& operator<<(std::ostream& os, String& s);
-
-
 };
 std::istream& operator>>(std::istream& is, String& s);
