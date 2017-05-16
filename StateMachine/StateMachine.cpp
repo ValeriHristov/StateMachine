@@ -21,13 +21,54 @@ int IndexOfStateUnion(std::vector<StateUnion*> vector, const StateUnion& state)
 bool ValidateRegex(String regex)
 {
 	char t;
-	for (int i = 0; i < regex.Length(); i++)
+	int len = regex.Length();
+	bool isPreviousSpecialSymbol=false;
+	for (int i = 0; i < len; i++)
 	{
 		t = regex[i];
-		if (isalpha(t) || isdigit(t) || t == '|' || t == '(' || t == ')' || t == '*')
+		if (t == '|' || t == '*')
 		{
+			if (isPreviousSpecialSymbol)
+			{
+				return false;
+			}
+			isPreviousSpecialSymbol = true;
 			continue;
 		}
+		if (t == '(' || t == ')')
+		{
+			isPreviousSpecialSymbol = false;
+			continue;
+		}
+		if (isalpha(t) || isdigit(t))
+		{
+			isPreviousSpecialSymbol = false;
+			continue;
+		}
+		return false;
+	}
+
+	std::stack<char> stack;
+	for (int i = 0; i < len; i++)
+	{
+		t = regex[i];
+		if (t=='(')
+		{
+			stack.push('(');
+			continue;
+		}
+		if (t==')')
+		{
+			if (stack.size()==0)
+			{
+				return false;
+			}
+			stack.pop();
+		}
+	}
+
+	if (stack.size()!=0)
+	{
 		return false;
 	}
 	return true;
@@ -239,6 +280,12 @@ StateMachine::StateMachine(String regex)
 
 StateMachine::StateMachine(std::ifstream& is)
 {
+	if (!is.is_open())
+	{
+		std::cout << "Invalid file name. Creating an empty state machine!\n";
+		*this = StateMachine();
+		return;
+	}
 	is >> this->regex;
 	if (this->regex.ContainsAny("^R",2))
 	{
@@ -400,7 +447,7 @@ String StateMachine::RegexToRPN(String regex) const
 			}
 			else
 			{
-				while (!(operations.size() == 0 || op > operations.top()))
+				while (!(operations.size() == 0 || operations.top().ch=='('|| op > operations.top()))
 				{
 					output.push(operations.top().ch);
 					operations.pop();
@@ -939,3 +986,11 @@ String StateMachine::TransitionsToString() const
 	return result;
 }
 
+bool StateMachine::IsLanguageFinite() const
+{
+	if (this->regex.ContainsAny("*",1))
+	{
+		return false;
+	}
+	return true;
+}

@@ -41,6 +41,7 @@ public:
 	bool Recognize(String word);
 	bool IsLanguageEmpty() const;
 	bool IsDeterministic() const;
+	bool IsLanguageFinite() const;
 	StateMachine Union(const StateMachine& other)const;
 	StateMachine Concatenate(const StateMachine& other) const;
 	StateMachine Iteration() const;
