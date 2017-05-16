@@ -236,12 +236,19 @@ StateMachine::StateMachine(String regex)
 	this->isDeterministic = this->CheckIfDeterministic();
 	this->isReversed = false;
 }
+
 StateMachine::StateMachine(std::ifstream& is)
 {
 	is >> this->regex;
+	if (this->regex.ContainsAny("^R",2))
+	{
+		this->regex = this->regex.Substring(0, this->regex.Length() - 2);
+		this->isReversed = true;
+	}
 	String temp;
 	is >> temp;
 	auto args = temp.Split();
+	int maxStartStateIndex = args[args.size() - 1].ToInt();
 	//add start states indexes
 	for (int i = 0; i < args.size(); i++)
 	{
@@ -257,10 +264,14 @@ StateMachine::StateMachine(std::ifstream& is)
 		return;
 	}
 	//add all states until the last final
-	int max = args[args.size() - 1].ToInt();
+	int finalStatesMaxIndex = args[args.size() - 1].ToInt();
+	if (maxStartStateIndex<finalStatesMaxIndex)
+	{
+		maxStartStateIndex = finalStatesMaxIndex;
+	}
 	int counter = 0;
 	int i = 0;
-	while (i <= max)
+	while (i <= finalStatesMaxIndex)
 	{
 		if (i == args[counter].ToInt())
 		{
@@ -271,6 +282,11 @@ StateMachine::StateMachine(std::ifstream& is)
 		{
 			this->AddState(new State());
 		}
+		i++;
+	}
+	while (i<=maxStartStateIndex)
+	{
+		this->AddState(new State());
 		i++;
 	}
 
@@ -659,7 +675,15 @@ StateMachine StateMachine::Concatenate(const StateMachine& other) const
 StateMachine StateMachine::Iteration() const
 {
 	StateMachine newMachine(*this);
-	newMachine.regex = this->regex + "*";
+	
+	if (this->regex.Length()==1)
+	{
+		newMachine.regex = this->regex+"*";
+	}
+	else
+	{
+		newMachine.regex = "(" + this->regex + ")*";
+	}
 	State* newState = new State(true);
 	newMachine.AddState(newState);
 
@@ -818,7 +842,7 @@ void StateMachine::Reverse()
 	newMachine.isReversed = this->isReversed;
 	*this = newMachine;
 	this->isReversed = !this->isReversed;
-	this->isDeterministic = false;
+	this->isDeterministic = this->CheckIfDeterministic();
 }
 
 void StateMachine::Minimize()
@@ -864,13 +888,13 @@ bool StateMachine::IsLanguageEmpty() const
 String StateMachine::ToString() const
 {
 	String result;
-	result.AppendLine(this->regex);
+	result.AppendLine(this->GetRegex());
 
 	//add start states indexes
 	for (int i = 0; i < this->starts.size(); i++)
 	{
 		char ch[15];
-		itoa(this->starts[i], ch, 10);
+		_itoa_s(this->starts[i], ch, 10);
 		String temp(ch);
 		temp.Append(" ");
 		result.Append(temp);
@@ -883,7 +907,7 @@ String StateMachine::ToString() const
 		if (this->states[i]->IsFinal())
 		{
 			char ch[15];
-			itoa(i, ch, 10);
+			_itoa_s(i, ch, 10);
 			String temp(ch);
 			temp.Append(" ");
 			result.Append(temp);
@@ -905,7 +929,7 @@ String StateMachine::TransitionsToString() const
 		for (int j = 0; j < t.size(); j++)
 		{
 			char ch[15];
-			itoa(i, ch, 10);
+			_itoa_s(i, ch, 10);
 			String temp((ch));
 			temp.Append(" ");
 			temp.AppendLine(t[j].ToString());

@@ -32,7 +32,7 @@ String Transition::ToString() const
 	res += this->letter;
 	res += " ";
 	char temp[15];
-	itoa(this->indexOfNextState, temp, 10);
+	_itoa_s(this->indexOfNextState, temp, 10);
 	res += temp;
 	return res;
 }
