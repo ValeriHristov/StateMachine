@@ -32,9 +32,13 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Open(parameters[1]);
 		}
+		else if (command == "?")
+		{
+			this->Help();
+		}
 		else if (command == "List")
 		{
-			this->os << "Not implemented yet!\n";
+			this->List();
 		}
 		else if (command == "Print")
 		{
@@ -128,20 +132,6 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Reg(parameters[1]);
 		}
-		else if (command == "Set")
-		{
-			if (parameters.size() != 3)
-			{
-				this->os << "Invalid parameters!\n";
-				continue;
-			}
-			else if (parameters[1] != "destination")
-			{
-				this->os << "Invalid parameters!\n";
-				continue;
-			}
-			this->SetDestination(parameters[2]);
-		}
 		else if (command == "Minimize")
 		{
 			if (!ValidateInput(parameters[1], 2, parameters))
@@ -183,6 +173,10 @@ void ConsoleInterface::Read(std::istream& is)
 			this->os << "Closing the program!\n";
 			return;
 		}
+		else
+		{
+			this->os << "Invalid input!\n";
+		}
 	}
 }
 
@@ -209,12 +203,6 @@ void ConsoleInterface::Recognize(int index, String word)
 	{
 		this->os << "The word \"" << word << "\" is NOT recognized by state machine with index " << index << "\n";
 	}
-}
-
-void ConsoleInterface::SetDestination(String dest)
-{
-	this->destination = dest;
-	os << "Succesfully changed the destination folder!\n";
 }
 
 ConsoleInterface::ConsoleInterface(std::istream& is, std::ostream& os) : is(is), os(os)
@@ -366,6 +354,7 @@ void ConsoleInterface::Save(int index, String fileName) const
 	ofs.close();
 	delete[] fileNameTemp;
 	delete[] output;
+	this->os << "Save successful!\n";
 }
 
 void ConsoleInterface::Print(int index) const
@@ -385,6 +374,39 @@ void ConsoleInterface::Open(String fileName)
 	std::ifstream ifs(temp);
 	StateMachine a(ifs);
 	this->AddElement(a);
-	this->os << "Opened state machine with index " << this->elementsCount - 1 << "\n";
+	this->os << "Opened state machine with index " << this->elementsCount - 1 <<" from file "<<fileName << "\n";
 	delete[] temp;
+}
+
+void ConsoleInterface::List() const
+{
+	char* temp;
+	for (int i = 0; i < this->elements.size(); i++)
+	{
+		temp = this->elements[i].GetRegex().ToCharArray();
+		this->os << "Id: " << i << " Regex: " << temp << "\n";
+		delete[] temp;
+	}
+}
+
+void ConsoleInterface::Help() const
+{
+	this->os << "Available commands:\n";
+	this->os << "-Open <filename>\n";
+	this->os << "-List\n";
+	this->os << "-Print <id>\n"; 
+	this->os << "-Save <id> <filename>\n";
+	this->os << "-Empty <id>\n";
+	this->os << "-Deterministic <id>\n";
+	this->os << "-Recognize <id> <word>\n";
+	this->os << "-Union <id1> <id2>\n";
+	this->os << "-Concat <id1> <id2>\n";
+	this->os << "-Minimize <id>\n";
+	this->os << "-Determinate <id>\n";
+	this->os << "-Reverse <id>\n";
+	this->os << "-Un <id>\n";
+	this->os << "-Reg <regex>\n";
+	this->os << "-Language <id>\n";
+	this->os << "-Close\n";
+
 }
