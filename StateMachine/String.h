@@ -31,9 +31,14 @@ public:
 	void Print()const;
 	//Gets an array of chars and the chars count. Returns true if any of the chars is contained at least once in the string.
 	bool ContainsAny(char*, int count) const;
+	bool Contains(char) const;
+	bool Contains(const String&) const;
+	bool Contains(const char*) const;
 	int Count(char) const;
 	int IndexOf(char) const;
 	int IndexOf(char ch, int startIndex)const;
+	int IndexOf(const String&)const;
+	int IndexOf(const char*) const;
 	//Gets an array of chars and the chars count. Returns the first index a char is contained in the string.
 	int FirstIndexOfAny(char* chars, int count) const;
 	int LastIndexOf(char) const;

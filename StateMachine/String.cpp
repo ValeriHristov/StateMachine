@@ -187,6 +187,35 @@ int String::IndexOf(char ch, int startIndex) const
 	}
 	return -1;
 }
+int String::IndexOf(const String& str)const
+{
+	String substr;
+	int currIndex = this->IndexOf(str[0]);
+	while (currIndex!=-1)
+	{
+		if (this->Substring(currIndex,str.Length())==str)
+		{
+			break;
+		}
+		currIndex = this->IndexOf(str[0], currIndex+1);
+	}
+	return currIndex;
+}
+int String::IndexOf(const char* str) const
+{
+	return this->IndexOf(String(str));
+}
+int String::LastIndexOf(char ch) const
+{
+	for (int i = this->length - 1; i >= 0; i--)
+	{
+		if (this->content[i] == ch)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
 int String::FirstIndexOfAny(char* chars, int count) const
 {
 	int minIndex = this->length;
@@ -228,16 +257,25 @@ bool String::ContainsAny(char* chars, int count)const
 	}
 	return false;
 }
-int String::LastIndexOf(char ch) const
+bool String::Contains(char ch) const
 {
-	for (int i = this->length - 1; i >= 0; i--)
+	if (this->IndexOf(ch)!= -1)
 	{
-		if (this->content[i] == ch)
-		{
-			return i;
-		}
+		return true;
 	}
-	return -1;
+	return false;
+}
+bool String::Contains(const String& str) const
+{
+	if (this->IndexOf(str)!=-1)
+	{
+		return true;
+	}
+	return false;
+}
+bool String::Contains(const char* str) const
+{
+	return this->Contains(String(str));
 }
 String String::Substring(int start, int len) const
 {
