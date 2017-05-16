@@ -375,3 +375,9 @@ char* String::ToCharArray() const
 	res[this->length] = 0;
 	return res;
 }
+String operator+(const char* ch, const String& str)
+{
+	 String result(ch);
+	 result.Append(str);
+	 return result;
+}

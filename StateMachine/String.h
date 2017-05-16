@@ -51,3 +51,4 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, String& s);
 };
 std::istream& operator>>(std::istream& is, String& s);
+String operator+(const char*,const String&);
