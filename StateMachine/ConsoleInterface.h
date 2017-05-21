@@ -26,9 +26,10 @@ private:
 	void Determinate(int index);
 	void Reverse(int index);
 	void PrintLanguage(int index) const;
+	void IsLanguageFinite(int index) const;
 	void Help() const;
-	bool ValidateInput(String stringToInt, int parametersNeeded, std::vector<String> str) const;
-	bool ValidateInput(String* stringToInt, int stringsToParse, int parametersNeeded, std::vector<String> str) const;
+	bool ValidateInput(int stringIndexToInt, int parametersNeeded, std::vector<String> str) const;
+	bool ValidateInput(int* stringToInt, int stringsToParse, int parametersNeeded, std::vector<String> str) const;
 
 public:
 	void Read(std::istream& is = std::cin);
