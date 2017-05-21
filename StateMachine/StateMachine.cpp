@@ -849,6 +849,7 @@ void StateMachine::Determinate()
 	}
 	newMachine.starts.push_back(0);
 	newMachine.regex = this->regex;
+	newMachine.isReversed = this->isReversed;
 	*this = newMachine;
 	this->isDeterministic = true;
 }
