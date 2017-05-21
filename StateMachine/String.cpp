@@ -98,10 +98,10 @@ bool String::operator!=(const String& other) const
 std::istream& operator>>(std::istream& is, String& s)
 {
 	s = "";
-	while (is.peek()> 0)
+	while (is.peek() > 0)
 	{
 		char input = is.get();
-		if (input!= '\n')
+		if (input != '\n')
 		{
 			s.Append(input);
 		}
@@ -113,7 +113,7 @@ std::istream& operator>>(std::istream& is, String& s)
 	return is;
 }
 std::ostream& operator<<(std::ostream& os, String& s)
-{	
+{
 	for (int i = 0; i < s.length; i++)
 	{
 		os << s[i];
@@ -153,17 +153,9 @@ void String::Append(const String& str)
 	}
 	delete temp;
 }
-void String::Append(const char* ch)
-{
-	this->Append(String(ch));
-}
 void String::AppendLine(const String& str)
 {
 	this->Append(str + "\n");
-}
-void String::AppendLine(const char* ch)
-{
-	this->AppendLine(String(ch));
 }
 void String::Print() const
 {
@@ -189,21 +181,21 @@ int String::IndexOf(char ch, int startIndex) const
 }
 int String::IndexOf(const String& str)const
 {
+	return this->IndexOf(str, 0);
+}
+int String::IndexOf(const String& str, int startIndex) const
+{
 	String substr;
-	int currIndex = this->IndexOf(str[0]);
-	while (currIndex!=-1)
+	int currIndex = this->IndexOf(str[0], startIndex);
+	while (currIndex != -1)
 	{
-		if (this->Substring(currIndex,str.Length())==str)
+		if (this->Substring(currIndex, str.Length()) == str)
 		{
 			break;
 		}
-		currIndex = this->IndexOf(str[0], currIndex+1);
+		currIndex = this->IndexOf(str[0], currIndex + 1);
 	}
 	return currIndex;
-}
-int String::IndexOf(const char* str) const
-{
-	return this->IndexOf(String(str));
 }
 int String::LastIndexOf(char ch) const
 {
@@ -234,15 +226,14 @@ int String::FirstIndexOfAny(char* chars, int count) const
 	}
 	return minIndex;
 }
-int String::Count(char ch) const
+int String::Count(const String& str) const
 {
 	int counter = 0;
-	for (int i = 0; i < this->length; i++)
+	int index = this->IndexOf(str);
+	while (index!=-1)
 	{
-		if (this->content[i] == ch)
-		{
-			counter++;
-		}
+		counter++;
+		index = this->IndexOf(str, index + 1);
 	}
 	return counter;
 }
@@ -257,25 +248,13 @@ bool String::ContainsAny(char* chars, int count)const
 	}
 	return false;
 }
-bool String::Contains(char ch) const
-{
-	if (this->IndexOf(ch)!= -1)
-	{
-		return true;
-	}
-	return false;
-}
 bool String::Contains(const String& str) const
 {
-	if (this->IndexOf(str)!=-1)
+	if (this->IndexOf(str) != -1)
 	{
 		return true;
 	}
 	return false;
-}
-bool String::Contains(const char* str) const
-{
-	return this->Contains(String(str));
 }
 String String::Substring(int start, int len) const
 {
@@ -327,16 +306,47 @@ std::vector<String> String::Split(char delimiter) const
 
 	return result;
 }
-void String::InsertAt(int index, char ch)
-{
-	this->InsertAt(index, String(ch));
-}
-void String::InsertAt(int index, String str)
+void String::InsertAt(int index,const String& str)
 {
 	String tmp = this->Substring(0, index);
 	tmp.Append(str);
 	tmp.Append(this->Substring(index));
 	*this = tmp;
+}
+void String::Remove(const String& other)
+{
+	this->Replace(other, "");
+}
+void String::Replace(const String& oldStr, const String& newStr)
+{
+	if (oldStr == newStr)
+	{
+		return;
+	}
+	String result;
+	int startIndex = 0;
+	int index = this->IndexOf(oldStr);
+	if (index == -1)
+	{
+		return;
+	}
+	while (index != -1)
+	{
+		if (index != startIndex)
+		{
+			result.Append(this->Substring(startIndex, index - startIndex));
+		}
+		result.Append(newStr);
+		startIndex = index + oldStr.length;
+		index = this->IndexOf(oldStr, startIndex);
+	}
+
+	if (startIndex < this->length)
+	{
+		result.Append(this->Substring(startIndex));
+	}
+
+	*this = result;
 }
 int String::ToInt() const
 {
@@ -415,7 +425,7 @@ char* String::ToCharArray() const
 }
 String operator+(const char* ch, const String& str)
 {
-	 String result(ch);
-	 result.Append(str);
-	 return result;
+	String result(ch);
+	result.Append(str);
+	return result;
 }
