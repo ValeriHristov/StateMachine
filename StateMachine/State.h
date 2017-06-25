@@ -6,19 +6,20 @@
 class Transition;
 class State
 {
-protected:
+private:
 	bool isFinal;
 	std::unordered_map<char, std::vector<Transition>> transitions;
 public:
 	State(bool isFinal);
 	State();
 	State(const State*);
-	void AddTransition(const Transition&);
+	void AddTransition(const Transition);
 	bool IsFinal() const;
 	std::vector<Transition> Transist(String word) const;
 	std::vector<Transition> GetAllTransitions() const;
 	std::vector<std::vector<Transition>> GetAllTransitionsGrouped() const;
-	void AddFunctionality(const State&, bool copyIsFinal);
+	void AddFunctionality(const State& other, bool copyIsFinal=false);
+	void AddMappedFunctionality(const State& other, std::unordered_map<int, int>& oldStatesToNew, bool copyIsFinal = false);
 	void Print() const;
 	bool HasTransition(const Transition&);
 };

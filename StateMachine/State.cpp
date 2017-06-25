@@ -29,7 +29,22 @@ void State::AddFunctionality(const State& other, bool copyIsFinal)
 	}
 }
 
-void State::AddTransition(const Transition& tr)
+void State::AddMappedFunctionality(const State& other, std::unordered_map<int, int>& oldStatesToNew, bool copyIsFinal)
+{	
+		auto temp = other.GetAllTransitions();
+		for (int j = 0; j < temp.size(); j++)
+		{
+			Transition t = temp[j];
+			Transition newT(t.GetLetter(), oldStatesToNew[t.Transist()]);
+			this->AddTransition(newT);
+		}
+		if (copyIsFinal)
+		{
+			this->isFinal = other.IsFinal();
+		}
+}
+
+void State::AddTransition(const Transition tr)
 {
 	if (this->HasTransition(tr))
 	{

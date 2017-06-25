@@ -22,7 +22,7 @@ bool ValidateRegex(String regex)
 {
 	char t;
 	int len = regex.Length();
-	bool isPreviousSpecialSymbol=false;
+	bool isPreviousSpecialSymbol = false;
 	for (int i = 0; i < len; i++)
 	{
 		t = regex[i];
@@ -52,14 +52,14 @@ bool ValidateRegex(String regex)
 	for (int i = 0; i < len; i++)
 	{
 		t = regex[i];
-		if (t=='(')
+		if (t == '(')
 		{
 			stack.push('(');
 			continue;
 		}
-		if (t==')')
+		if (t == ')')
 		{
-			if (stack.size()==0)
+			if (stack.size() == 0)
 			{
 				return false;
 			}
@@ -67,7 +67,7 @@ bool ValidateRegex(String regex)
 		}
 	}
 
-	if (stack.size()!=0)
+	if (stack.size() != 0)
 	{
 		return false;
 	}
@@ -165,6 +165,40 @@ void StateMachine::RemoveUnreachableStates()
 	}
 
 	this->MapTransitionsToNewIndexes(deletedStatesIndexes);
+}
+
+void StateMachine::TransferStates(const StateMachine& other, std::unordered_map<int, int>& oldStatesToNew)
+{
+	std::vector<State*> tempState = other.states;
+	for (int i = 0; i < other.states.size(); i++)
+	{
+		State* t = new State(tempState[i]->IsFinal());
+		oldStatesToNew[other.IndexOfState(tempState[i])] = this->states.size();
+		this->AddState(t);
+	}
+}
+
+bool StateMachine::HasFinalStartState() const
+{
+	bool isFinal = false;
+	for (int i = 0; i < this->starts.size() && !isFinal; i++)
+	{
+		isFinal = isFinal || this->states[this->starts[i]]->IsFinal();
+	}
+	return isFinal;
+}
+
+void StateMachine::AddMappedTransitions(const StateMachine& other, std::unordered_map<int, int>& oldStatesToNew, int startIndex)
+{
+	for (int i = 0; i < other.states.size(); i++)
+	{
+		std::vector<Transition> temp = other.states[i]->GetAllTransitions();
+		for (int j = 0; j < temp.size(); j++)
+		{
+			Transition t(temp[j].GetLetter(), oldStatesToNew[temp[j].Transist()]);
+			this->states[i + startIndex /*this->states.size()+1*/]->AddTransition(t);
+		}
+	}
 }
 
 void StateMachine::MapTransitionsToNewIndexes(std::vector<int> deletedStatesIndexes)
@@ -287,7 +321,7 @@ StateMachine::StateMachine(std::ifstream& is)
 		return;
 	}
 	is >> this->regex;
-	if (this->regex.ContainsAny("^R",2))
+	if (this->regex.ContainsAny("^R", 2))
 	{
 		this->regex = this->regex.Substring(0, this->regex.Length() - 2);
 		this->isReversed = true;
@@ -304,7 +338,7 @@ StateMachine::StateMachine(std::ifstream& is)
 
 	is >> temp;
 	args = temp.Split();
-	if (args.size()==0)
+	if (args.size() == 0)
 	{
 		std::cout << "Invalid input. Creating an empty state machine!\n";
 		*this = StateMachine();
@@ -312,7 +346,7 @@ StateMachine::StateMachine(std::ifstream& is)
 	}
 	//add all states until the last final
 	int finalStatesMaxIndex = args[args.size() - 1].ToInt();
-	if (maxStartStateIndex<finalStatesMaxIndex)
+	if (maxStartStateIndex < finalStatesMaxIndex)
 	{
 		maxStartStateIndex = finalStatesMaxIndex;
 	}
@@ -331,7 +365,7 @@ StateMachine::StateMachine(std::ifstream& is)
 		}
 		i++;
 	}
-	while (i<=maxStartStateIndex)
+	while (i <= maxStartStateIndex)
 	{
 		this->AddState(new State());
 		i++;
@@ -343,7 +377,7 @@ StateMachine::StateMachine(std::ifstream& is)
 	{
 		is >> temp;
 		temp.InsertAt(0, ch);
-		
+
 		args = temp.Split();
 		if (args.size() != 3)
 		{
@@ -354,7 +388,7 @@ StateMachine::StateMachine(std::ifstream& is)
 		char letter = args[1][0];
 		int index = args[2].ToInt();
 		this->states[args[0].ToInt()]->AddTransition(Transition(letter, index));
-		while(index > this->states.size()-1)
+		while (index > this->states.size() - 1)
 		{
 			this->AddState(new State());
 		}
@@ -447,7 +481,7 @@ String StateMachine::RegexToRPN(String regex) const
 			}
 			else
 			{
-				while (!(operations.size() == 0 || operations.top().ch=='('|| op > operations.top()))
+				while (!(operations.size() == 0 || operations.top().ch == '(' || op > operations.top()))
 				{
 					output.push(operations.top().ch);
 					operations.pop();
@@ -595,62 +629,28 @@ StateMachine StateMachine::Union(const StateMachine& other) const
 	newMachine.regex.Append(String(String("|") + other.regex));
 
 	// the new start is also an end if any of the old starts are end
-	bool isFinal = false;
-	for (int i = 0; i < this->starts.size() && !isFinal; i++)
-	{
-		isFinal = isFinal || this->states[this->starts[i]]->IsFinal();
-	}
-	for (int i = 0; i < other.starts.size() && !isFinal; i++)
-	{
-		isFinal = isFinal || other.states[other.starts[i]]->IsFinal();
-	}
+	bool isFinal = this->HasFinalStartState() || other.HasFinalStartState();
 	State* newStart = new State(isFinal);
 	newMachine.AddState(newStart);
 
 	//add all states from the other machine
-	std::vector<State*> tempState = other.states;
 	std::unordered_map<int, int> oldStatesToNew;
-	for (int i = 0; i < other.states.size(); i++)
-	{
-		State* t = new State((*tempState[i]).IsFinal());
-		newMachine.AddState(t);
-		oldStatesToNew[other.IndexOfState(tempState[i])] = newMachine.states.size() - 1;
-	}
+	newMachine.TransferStates(other, oldStatesToNew);
 
 	//add the functionality for the new states
-	for (int i = 0; i < other.states.size(); i++)
-	{
-		std::vector<Transition> temp = other.states[i]->GetAllTransitions();
-		for (int j = 0; j < temp.size(); j++)
-		{
-			newMachine.states[i + this->states.size() + 1]->
-				AddTransition(Transition(temp[j].GetLetter(), oldStatesToNew[temp[j].Transist()]));
-		}
-	}
+	newMachine.AddMappedTransitions(other, oldStatesToNew, this->states.size() + 1);
 
 	//Make the new start do the work of the old start of this
 	std::vector<Transition> temp;
 	for (int k = 0; k < this->starts.size(); k++)
 	{
-		temp = this->states[this->starts[k]]->GetAllTransitions();
-		for (int i = 0; i < temp.size(); i++)
-		{
-			Transition t = temp[i];
-			Transition newT(t.GetLetter(), t.Transist());
-			newStart->AddTransition(newT);
-		}
+		newStart->AddFunctionality(this->states[this->starts[k]]);
 	}
 
-	//Make the new start do the work of the start of other
+	//Make the new start do the work of the starts of other
 	for (int k = 0; k < other.starts.size(); k++)
 	{
-		temp = other.states[other.starts[k]]->GetAllTransitions();
-		for (int i = 0; i < temp.size(); i++)
-		{
-			Transition t = temp[i];
-			Transition newT(t.GetLetter(), oldStatesToNew[t.Transist()]);
-			newStart->AddTransition(newT);
-		}
+		newStart->AddMappedFunctionality(other.states[other.starts[k]], oldStatesToNew);
 	}
 
 	newMachine.starts.clear();
@@ -667,24 +667,10 @@ StateMachine StateMachine::Concatenate(const StateMachine& other) const
 
 	//add all states from the other machine
 	std::unordered_map<int, int> oldStatesToNew;
-	std::vector<State*> tempStates = other.states;
-	for (int i = 0; i < other.states.size(); i++)
-	{
-		oldStatesToNew[other.IndexOfState(tempStates[i])] = newMachine.states.size();
-		State* t = new State(tempStates[i]->IsFinal());
-		newMachine.AddState(t);
-	}
+	newMachine.TransferStates(other, oldStatesToNew);
 
 	//add the functionality for the new states
-	for (int i = 0; i < other.states.size(); i++)
-	{
-		std::vector<Transition> temp = other.states[i]->GetAllTransitions();
-		for (int j = 0; j < temp.size(); j++)
-		{
-			newMachine.states[i + this->states.size()]->
-				AddTransition(Transition(temp[j].GetLetter(), oldStatesToNew[temp[j].Transist()]));
-		}
-	}
+	newMachine.AddMappedTransitions(other, oldStatesToNew, this->states.size());
 
 	//make the final states of the first do the work of the start of the second
 	int endStatesCount = this->finalStates.size();
@@ -693,23 +679,12 @@ StateMachine StateMachine::Concatenate(const StateMachine& other) const
 	{
 		for (int k = 0; k < other.starts.size(); k++)
 		{
-			temp = other.states[other.starts[k]]->GetAllTransitions();
-			for (int j = 0; j < temp.size(); j++)
-			{
-				Transition t = temp[j];
-				Transition newT(t.GetLetter(), oldStatesToNew[t.Transist()]);
-				newMachine.finalStates[i]->AddTransition(newT);
-			}
+			newMachine.finalStates[i]->AddMappedFunctionality(other.states[other.starts[k]], oldStatesToNew);
 		}
 	}
 
 	//the final states remain final if the start of the second was final
-	bool isFinal = false;
-	for (int i = 0; i < other.starts.size() && !isFinal; i++)
-	{
-		isFinal = isFinal || other.states[other.starts[i]]->IsFinal();
-	}
-	if (!isFinal)
+	if (!other.HasFinalStartState())
 	{
 		for (int i = 0; i < this->finalStates.size(); i++)
 		{
@@ -722,10 +697,11 @@ StateMachine StateMachine::Concatenate(const StateMachine& other) const
 StateMachine StateMachine::Iteration() const
 {
 	StateMachine newMachine(*this);
-	
-	if (this->regex.Length()==1)
+
+	// change regex
+	if (this->regex.Length() == 1)
 	{
-		newMachine.regex = this->regex+"*";
+		newMachine.regex = this->regex + "*";
 	}
 	else
 	{
@@ -734,6 +710,7 @@ StateMachine StateMachine::Iteration() const
 	State* newState = new State(true);
 	newMachine.AddState(newState);
 
+	//all final states do the word of the start states
 	int endStatesCount = newMachine.finalStates.size();
 	std::vector<Transition> t;
 	for (int k = 0; k < this->starts.size(); k++)
@@ -760,10 +737,10 @@ StateMachine StateMachine::Iteration() const
 
 void StateMachine::Determinate()
 {
-	if (this->isDeterministic)
+	/*if (this->isDeterministic)
 	{
-		return;
-	}
+	return;
+	}*/
 	//Unite the start states
 	StateUnion* newState = new StateUnion(false);
 	int processedSoFar = 0;
@@ -989,7 +966,7 @@ String StateMachine::TransitionsToString() const
 
 bool StateMachine::IsLanguageFinite() const
 {
-	if (this->regex.ContainsAny("*",1))
+	if (this->regex.ContainsAny("*", 1))
 	{
 		return false;
 	}

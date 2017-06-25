@@ -1,5 +1,6 @@
 #pragma once
 #include "State.h"
+class String;
 class Transition
 {
 private:

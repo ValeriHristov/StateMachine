@@ -1,4 +1,3 @@
-#pragma once
 #include "ConsoleInterface.h"
 #include <fstream>
 

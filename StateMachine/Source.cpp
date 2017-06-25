@@ -1,26 +1,56 @@
 #include "StateMachine.h"
 #include <iostream>
+#include <fstream>
 #include "Sorted.cpp"
 #include "ConsoleInterface.h"
 #include <cassert>
 int main()
 {
-	
-	//String s = "b*ab*a(a|b)";
-	//String t = s + "|a";
-	//String c = "a*ba*ba*";
-	//String a = "(b*ab*a(a|b)*|a*ba*ba*)";
-	////String a = "(a*b*|(ac)*|qwerty)*";
-	//StateMachine b(a);
+	//StateMachine c("a|a|a|a|a*");
+	//c.Minimize();
+	//std::ifstream is;
+	//is.open("test.txt");
 
-	//b.Minimize();
-	//b=b.Iteration();
-	//b.Determinate();
-	//b.Minimize();
+	//StateMachine test(is);
 
+	//is.close();
+	//std::ofstream os("testReading.txt");
+	//os << test.ToString().ToCharArray();
+	//os.close();
 
-	ConsoleInterface a;
-	a.Read();
-	
+	//is.open("testReading.txt");
+	//StateMachine read(is);
+	//StateMachine fund("123123kksadlkjaslkfjdalksdjalskd");
+	/*ConsoleInterface a;
+	a.Read();*/
+	StateMachine qwe("bor|bora|borut|borove|borovete|bob|boba|bobut|bobove|bobovete|rob|roba|robut|robi|robite");
+	//StateMachine c("bor|bora|borut|borove|borovete");
+	//StateMachine x("bob|boba|bobut|bobove|bobovete");
+	//StateMachine w("rob|roba|robut|robi|robite");
+	//x.Minimize();
+	//c.Minimize();
+	//w.Minimize();
+	////x.Print();
+	//
+	//StateMachine p = x.Union(c);
+	//StateMachine q = c.Union(x);
+	//
+	//p.Minimize();
+	//q.Minimize();
+	//q = q.Union(w);
+	//p = p.Union(w);
+	//q.Minimize();
+	//p.Minimize();
+	//q.Print();
+	//p.Print();
+	qwe.Minimize();
+	qwe.Print();
+
+	//c.Minimize();
+	//StateMachine u = c.Union(x);
+	//u.Minimize();
+//	u.Print();
+//	q.Print();
+	//x.Print();
 	return 0;
 }

@@ -22,6 +22,9 @@ private:
 	void CopyStateMachine(StateMachine&, const StateMachine&);
 	void DeleteStateMachine(StateMachine&);
 	void RemoveUnreachableStates();
+	void TransferStates(const StateMachine& other, std::unordered_map<int, int>& oldStatesToNew);
+	bool HasFinalStartState() const;
+	void AddMappedTransitions(const StateMachine& other, std::unordered_map<int, int>& oldStatesToNew,int startIndex);
 	int IndexOfState(const State*) const;
 	String RegexToRPN(String regex) const;
 	void MapTransitionsToNewIndexes(std::vector<int>);
@@ -30,6 +33,7 @@ private:
 	String AddConcatenationOperator(String regex) const;
 	bool RecognizeHelper(String word);
 	bool CheckIfDeterministic() const;
+	
 public:
 	StateMachine(char letter);
 	StateMachine();
