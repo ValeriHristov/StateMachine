@@ -17,9 +17,11 @@ bool ConsoleInterface::ValidateInput(int stringIndexToInt, int parametersNeeded,
 void ConsoleInterface::Read(std::istream& is)
 {
 	this->os << "Welcome to the state machinator! Type \"?\" if you need help!\n";
+	this->os << "If you are new here, I suggest you start with creating a state machine with the \"reg\" command!\n";
 	String s;
 	while (true)
 	{
+		this->os << "> ";
 		is >> s;
 		if (s == "")
 		{
@@ -27,7 +29,7 @@ void ConsoleInterface::Read(std::istream& is)
 		}
 		std::vector<String> parameters = s.Split();
 		String command = parameters[0];
-		if (command == "Open")
+		if (command == "open")
 		{
 			if (parameters.size()!= 2)
 			{
@@ -40,11 +42,11 @@ void ConsoleInterface::Read(std::istream& is)
 		{
 			this->Help();
 		}
-		else if (command == "List")
+		else if (command == "list")
 		{
 			this->List();
 		}
-		else if (command == "Print")
+		else if (command == "print")
 		{
 			if (!ValidateInput(1, 2, parameters))
 			{
@@ -53,7 +55,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Print(parameters[1]);
 		}
-		else if (command == "Save")
+		else if (command == "save")
 		{
 			if (!ValidateInput(1, 3, parameters))
 			{
@@ -62,7 +64,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Save(parameters[1], parameters[2]);
 		}
-		else if (command == "Empty")
+		else if (command == "empty")
 		{
 			if (!ValidateInput(1, 2, parameters))
 			{
@@ -71,7 +73,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->IsEmpty(parameters[1]);
 		}
-		else if (command == "Deterministic")
+		else if (command == "deterministic")
 		{
 			if (!ValidateInput(1, 2, parameters))
 			{
@@ -80,7 +82,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->IsDeterministic(parameters[1]);
 		}
-		else if (command == "Recognize")
+		else if (command == "recognize")
 		{
 			if (!ValidateInput(1, 3, parameters))
 			{
@@ -96,7 +98,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Recognize(parameters[1], parameters[2]);
 		}
-		else if (command == "Union")
+		else if (command == "union")
 		{
 			if (!(ValidateInput(1, 3, parameters) && parameters[2].TryParseToInt()))
 			{
@@ -105,7 +107,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Union(parameters[1], parameters[2]);
 		}
-		else if (command == "Concat")
+		else if (command == "concat")
 		{
 			if (!(ValidateInput(1, 3, parameters) && parameters[2].TryParseToInt()))
 			{
@@ -114,7 +116,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Concat(parameters[1], parameters[2]);
 		}
-		else if (command == "Un")
+		else if (command == "un")
 		{
 			if (!ValidateInput(1, 2, parameters))
 			{
@@ -123,7 +125,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Un(parameters[1]);
 		}
-		else if (command == "Reg")
+		else if (command == "reg")
 		{
 			if (parameters.size()==1)
 			{
@@ -136,7 +138,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Reg(parameters[1]);
 		}
-		else if (command == "Minimize")
+		else if (command == "minimize")
 		{
 			if (!ValidateInput(1, 2, parameters))
 			{
@@ -145,7 +147,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Minimize(parameters[1]);
 		}
-		else if (command == "Determinate")
+		else if (command == "determinate")
 		{
 			if (!ValidateInput(1, 2, parameters))
 			{
@@ -154,7 +156,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Determinate(parameters[1]);
 		}
-		else if (command == "Reverse")
+		else if (command == "reverse")
 		{
 			if (!ValidateInput(1, 2, parameters))
 			{
@@ -163,7 +165,7 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->Reverse(parameters[1]);
 		}
-		else if (command == "Language")
+		else if (command == "language")
 		{
 			if (!ValidateInput(1, 2, parameters))
 			{
@@ -172,10 +174,17 @@ void ConsoleInterface::Read(std::istream& is)
 			}
 			this->PrintLanguage(parameters[1]);
 		}
-		else if (command == "Close")
+		else if (command == "close")
 		{
 			this->os << "Closing the program!\n";
 			return;
+		}
+		else if (command == "clear")
+		{
+			for (int i = 0; i < 50; i++)
+			{
+				this->os << "\n";
+			}
 		}
 		else
 		{
@@ -413,22 +422,22 @@ void ConsoleInterface::List() const
 void ConsoleInterface::Help() const
 {
 	this->os << "Available commands:\n";
-	this->os << "-Open <filename>\n";
-	this->os << "-List\n";
-	this->os << "-Print <id>\n"; 
-	this->os << "-Save <id> <filename>\n";
-	this->os << "-Empty <id>\n";
-	this->os << "-Deterministic <id>\n";
-	this->os << "-Recognize <id> <word>\n";
-	this->os << "-Union <id1> <id2>\n";
-	this->os << "-Concat <id1> <id2>\n";
-	this->os << "-Minimize <id>\n";
-	this->os << "-Determinate <id>\n";
-	this->os << "-Reverse <id>\n";
-	this->os << "-Un <id>\n";
-	this->os << "-Reg <regex>\n";
-	this->os << "-Language <id>\n";
-	this->os << "-Finite <id>\n";
-	this->os << "-Close\n";
-
+	this->os << "- open <filename>\n";
+	this->os << "- list\n";
+	this->os << "- print <id>\n"; 
+	this->os << "- save <id> <filename>\n";
+	this->os << "- empty <id>\n";
+	this->os << "- deterministic <id>\n";
+	this->os << "- recognize <id> <word>\n";
+	this->os << "- union <id1> <id2>\n";
+	this->os << "- concat <id1> <id2>\n";
+	this->os << "- minimize <id>\n";
+	this->os << "- determinate <id>\n";
+	this->os << "- reverse <id>\n";
+	this->os << "- un <id>\n";
+	this->os << "- reg <regex>\n";
+	this->os << "- language <id>\n";
+	this->os << "- finite <id>\n";
+	this->os << "- close\n";
+	this->os << "For more information, read the README file!\n";
 }
