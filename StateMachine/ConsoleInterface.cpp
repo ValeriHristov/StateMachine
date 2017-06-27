@@ -422,6 +422,7 @@ void ConsoleInterface::List() const
 void ConsoleInterface::Help() const
 {
 	this->os << "Available commands:\n";
+	this->os << "- reg <regex>\n";
 	this->os << "- open <filename>\n";
 	this->os << "- list\n";
 	this->os << "- print <id>\n"; 
@@ -431,11 +432,10 @@ void ConsoleInterface::Help() const
 	this->os << "- recognize <id> <word>\n";
 	this->os << "- union <id1> <id2>\n";
 	this->os << "- concat <id1> <id2>\n";
+	this->os << "- un <id>\n";
 	this->os << "- minimize <id>\n";
 	this->os << "- determinate <id>\n";
 	this->os << "- reverse <id>\n";
-	this->os << "- un <id>\n";
-	this->os << "- reg <regex>\n";
 	this->os << "- language <id>\n";
 	this->os << "- finite <id>\n";
 	this->os << "- close\n";
