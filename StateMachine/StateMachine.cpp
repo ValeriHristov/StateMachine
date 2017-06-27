@@ -6,6 +6,11 @@
 #include <queue>
 #include "StateMachine.h"
 
+void PrintInvalidInput()
+{
+	std::cout << "Invalid input. Creating an empty state machine!\n";
+}
+
 //public:
 int IndexOfStateUnion(std::vector<StateUnion*> vector, const StateUnion& state)
 {
@@ -151,10 +156,22 @@ StateMachine::StateMachine(std::ifstream& is)
 	String temp;
 	is >> temp;
 	auto args = temp.Split();
+	if (!args[args.size() - 1].TryParseToInt())
+	{
+		PrintInvalidInput();
+		*this = StateMachine();
+		return;
+	}
 	int maxStartStateIndex = args[args.size() - 1].ToInt();
 	//add start states indexes
 	for (int i = 0; i < args.size(); i++)
 	{
+		if (!args[i].TryParseToInt())
+		{
+			PrintInvalidInput();
+			*this = StateMachine();
+			return;
+		}
 		this->starts.push_back(args[i].ToInt());
 	}
 
@@ -162,11 +179,17 @@ StateMachine::StateMachine(std::ifstream& is)
 	args = temp.Split();
 	if (args.size() == 0)
 	{
-		std::cout << "Invalid input. Creating an empty state machine!\n";
+		PrintInvalidInput();
 		*this = StateMachine();
 		return;
 	}
 	//add all states until the last final
+	if (!args[args.size() - 1].TryParseToInt())
+	{
+		PrintInvalidInput();
+		*this = StateMachine();
+		return;
+	}
 	int finalStatesMaxIndex = args[args.size() - 1].ToInt();
 	if (maxStartStateIndex < finalStatesMaxIndex)
 	{
@@ -176,6 +199,12 @@ StateMachine::StateMachine(std::ifstream& is)
 	int i = 0;
 	while (i <= finalStatesMaxIndex)
 	{
+		if (!args[counter].TryParseToInt())
+		{
+			PrintInvalidInput();
+			*this = StateMachine();
+			return;
+		}
 		if (i == args[counter].ToInt())
 		{
 			this->AddState(new State(true));
@@ -203,11 +232,17 @@ StateMachine::StateMachine(std::ifstream& is)
 		args = temp.Split();
 		if (args.size() != 3)
 		{
-			std::cout << "Invalid input. Creating an empty state machine!\n";
+			PrintInvalidInput();
 			*this = StateMachine();
 			return;
 		}
 		char letter = args[1][0];
+		if (!args[2].TryParseToInt() || !args[0].TryParseToInt())
+		{
+			PrintInvalidInput();
+			*this = StateMachine();
+			return;
+		}
 		int index = args[2].ToInt();
 		this->states[args[0].ToInt()]->AddTransition(Transition(letter, index));
 		while (index > this->states.size() - 1)
